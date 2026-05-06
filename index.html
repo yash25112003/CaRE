@@ -1,0 +1,2518 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CARE Leaderboard — Compute-Aware Remasking Evaluation</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=cabinet-grotesk@400,500,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
+<link href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<style>
+/* ── VARIABLES ─────────────────────────────────────────────────────────── */
+:root,[data-theme="light"]{
+  --color-bg:#f4f3ef;--color-surface:#f8f7f4;--color-surface-2:#fafaf8;
+  --color-surface-offset:#eeece6;--color-divider:#dbd9d3;--color-border:#d0cec6;
+  --color-text:#1a1916;--color-text-muted:#6b6a66;--color-text-faint:#b0afa9;
+  --color-primary:#01696f;--color-primary-hover:#0c4e54;
+  --color-warning:#d19900;--color-error:#c0392b;--color-success:#437a22;
+  --color-info:#006494;--color-purple:#7a39bb;
+  --font-display:'Cabinet Grotesk',sans-serif;--font-body:'Satoshi',sans-serif;
+  --font-mono:'JetBrains Mono','Fira Code',monospace;
+  --radius-sm:.375rem;--radius-md:.5rem;--radius-lg:.75rem;
+  --shadow-sm:0 1px 2px oklch(0.15 0.01 80/.08);
+  --shadow-md:0 4px 12px oklch(0.15 0.01 80/.10);
+  --transition:180ms cubic-bezier(.16,1,.3,1);
+}
+[data-theme="dark"]{
+  --color-bg:#0f0e0c;--color-surface:#141310;--color-surface-2:#181714;
+  --color-surface-offset:#1a1917;--color-divider:#242220;--color-border:#2d2b28;
+  --color-text:#d0cfcc;--color-text-muted:#7a7874;--color-text-faint:#525050;
+  --color-primary:#4f98a3;--color-primary-hover:#6db8c5;
+  --color-warning:#e8af34;--color-error:#e05a47;--color-success:#6daa45;
+  --color-info:#5591c7;--color-purple:#a86fdf;
+}
+/* ── RESET ─────────────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);font-size:15px;line-height:1.6;transition:background var(--transition),color var(--transition)}
+a{color:var(--color-primary);text-decoration:none}
+a:hover{text-decoration:underline}
+button{cursor:pointer;font-family:var(--font-body)}
+/* ── NAVBAR ────────────────────────────────────────────────────────────── */
+#nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.625rem 1.25rem;background:color-mix(in oklch,var(--color-surface) 92%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--color-border);flex-wrap:wrap}
+.nav-logo{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.nav-logo svg{width:26px;height:26px}
+.nav-logo-text{font-family:var(--font-display);font-size:.875rem;font-weight:700;line-height:1.1}
+.nav-logo-tag{font-size:.6rem;color:var(--color-text-muted);display:block}
+.nav-tabs{display:flex;gap:.125rem;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{padding:.375rem .75rem;border-radius:var(--radius-sm);font-size:.8rem;font-weight:500;color:var(--color-text-muted);background:none;border:none;white-space:nowrap;transition:all var(--transition);position:relative}
+.nav-tab:hover{color:var(--color-text);background:var(--color-surface-offset)}
+.nav-tab.active{color:var(--color-primary);background:color-mix(in oklch,var(--color-primary) 8%,transparent)}
+.nav-tab.active::after{content:'';position:absolute;bottom:0;left:.5rem;right:.5rem;height:2px;background:var(--color-primary);border-radius:2px}
+.nav-actions{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.btn-icon{display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:var(--radius-sm);background:var(--color-surface-offset);border:1px solid var(--color-border);color:var(--color-text-muted);transition:all var(--transition)}
+.btn-icon:hover{color:var(--color-text);background:var(--color-border)}
+/* ── HERO ──────────────────────────────────────────────────────────────── */
+#hero{padding:3rem 1.5rem 2.5rem;max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center}
+@media(max-width:900px){#hero{grid-template-columns:1fr;gap:2rem;padding:2rem 1rem}}
+.hero-eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--color-primary);margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
+.hero-h1{font-family:var(--font-display);font-size:2.75rem;font-weight:700;line-height:1.05;color:var(--color-text);margin-bottom:.5rem}
+@media(max-width:900px){.hero-h1{font-size:2rem}}
+.hero-h2{font-family:var(--font-display);font-size:1.1rem;font-weight:500;color:var(--color-text-muted);margin-bottom:1.25rem;line-height:1.4}
+.hero-body{font-size:.9375rem;color:var(--color-text-muted);margin-bottom:1.75rem;line-height:1.7;max-width:480px}
+.hero-ctas{display:flex;gap:.625rem;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:var(--radius-md);font-size:.85rem;font-weight:600;border:none;transition:all var(--transition)}
+.btn-primary{background:var(--color-primary);color:#fff}
+.btn-primary:hover{background:var(--color-primary-hover);color:#fff;text-decoration:none}
+.btn-secondary{background:var(--color-surface-offset);color:var(--color-text);border:1px solid var(--color-border)}
+.btn-secondary:hover{background:var(--color-border);color:var(--color-text);text-decoration:none}
+.btn-ghost{background:none;color:var(--color-text-muted);border:1px solid var(--color-border)}
+.btn-ghost:hover{color:var(--color-text);background:var(--color-surface-offset);text-decoration:none}
+.hero-cards{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.hero-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:1.125rem 1rem .875rem;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.hero-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2.5px;background:var(--card-accent,var(--color-primary))}
+.hero-card.c-teal{--card-accent:var(--color-primary)}
+.hero-card.c-gold{--card-accent:var(--color-warning)}
+.hero-card.c-red{--card-accent:var(--color-error);border-color:color-mix(in oklch,var(--color-error) 30%,var(--color-border))}
+.hero-card.c-green{--card-accent:var(--color-success)}
+.card-ico{width:26px;height:26px;border-radius:var(--radius-sm);background:color-mix(in oklch,var(--card-accent) 12%,transparent);color:var(--card-accent);display:flex;align-items:center;justify-content:center;margin-bottom:.625rem}
+.card-num{font-family:var(--font-display);font-size:1.75rem;font-weight:700;line-height:1;margin-bottom:.25rem}
+.card-lbl{font-size:.75rem;color:var(--color-text-muted);font-weight:500;line-height:1.35}
+.card-sub{font-size:.68rem;color:var(--color-text-faint);margin-top:.25rem;line-height:1.4}
+/* ── TAB PANELS ────────────────────────────────────────────────────────── */
+.tab-panel{display:none;max-width:1200px;margin:0 auto;padding:1.5rem 1.25rem 4rem}
+.tab-panel.active{display:block}
+/* ── SECTION TITLES ────────────────────────────────────────────────────── */
+.sec-title{font-family:var(--font-display);font-size:1.25rem;font-weight:700;color:var(--color-text);margin-bottom:.25rem}
+.sec-sub{font-size:.85rem;color:var(--color-text-muted);margin-bottom:1.5rem}
+/* ── OVERVIEW TAB LAYOUT ───────────────────────────────────────────────── */
+.overview-layout{display:grid;grid-template-columns:220px 1fr;gap:1.5rem;align-items:start}
+@media(max-width:900px){.overview-layout{grid-template-columns:1fr}}
+/* ── SIDEBAR ───────────────────────────────────────────────────────────── */
+.sidebar{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:1rem;box-sizing:border-box}
+.filter-group{margin-bottom:1.25rem}
+.filter-group:last-child{margin-bottom:0}
+.filter-label{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-faint);margin-bottom:.5rem;display:block}
+.filter-opt{display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem;font-size:.8rem;color:var(--color-text-muted);cursor:pointer}
+.filter-opt input{accent-color:var(--color-primary)}
+.filter-summary{font-size:.72rem;color:var(--color-primary);margin-bottom:.75rem;padding:.3rem .5rem;background:color-mix(in oklch,var(--color-primary) 8%,transparent);border-radius:var(--radius-sm);border:1px solid color-mix(in oklch,var(--color-primary) 20%,transparent)}
+select.filter-select{width:100%;padding:.35rem .5rem;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-surface-offset);color:var(--color-text);font-size:.8rem;font-family:var(--font-body)}
+/* ── TABLE AREA ────────────────────────────────────────────────────────── */
+.table-area{min-width:0}
+.table-warn{font-size:.75rem;color:var(--color-warning);padding:.35rem .625rem;background:color-mix(in oklch,var(--color-warning) 10%,transparent);border-radius:var(--radius-sm);border:1px solid color-mix(in oklch,var(--color-warning) 25%,transparent);margin-bottom:.75rem;display:flex;align-items:center;gap:.35rem}
+#leaderboard-table{border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--color-border)}
+.tabulator{background:var(--color-surface)!important;border:none!important;font-family:var(--font-body)!important}
+.tabulator .tabulator-header{background:var(--color-surface-offset)!important;border-bottom:1px solid var(--color-border)!important}
+.tabulator .tabulator-header .tabulator-col{background:transparent!important;border-right:1px solid var(--color-divider)!important;color:var(--color-text-muted)!important;font-size:.7rem!important;font-weight:700!important;letter-spacing:.05em!important;text-transform:uppercase!important}
+.tabulator .tabulator-row{border-bottom:1px solid var(--color-divider)!important;background:var(--color-surface)!important;color:var(--color-text)!important;font-size:.82rem!important}
+.tabulator .tabulator-row:hover{background:var(--color-surface-offset)!important}
+.tabulator .tabulator-row.tabulator-selected{background:color-mix(in oklch,var(--color-primary) 8%,transparent)!important}
+.row-collapse .tabulator-cell:first-child{border-left:2px solid var(--color-error)!important}
+.row-pareto .tabulator-cell:first-child{border-left:2px solid var(--color-primary)!important}
+/* ── BADGES ────────────────────────────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:.25rem;padding:.15rem .45rem;border-radius:100px;font-size:.67rem;font-weight:600;white-space:nowrap}
+.b-verified{background:color-mix(in oklch,var(--color-primary) 12%,transparent);color:var(--color-primary);border:1px solid color-mix(in oklch,var(--color-primary) 28%,transparent)}
+.b-paper{background:color-mix(in oklch,var(--color-text-faint) 15%,transparent);color:var(--color-text-muted);border:1px solid var(--color-border)}
+.b-pareto{background:color-mix(in oklch,var(--color-primary) 10%,transparent);color:var(--color-primary);border:1px solid color-mix(in oklch,var(--color-primary) 22%,transparent)}
+.b-collapse{background:color-mix(in oklch,var(--color-error) 10%,transparent);color:var(--color-error);border:1px solid color-mix(in oklch,var(--color-error) 22%,transparent)}
+.b-placeholder{background:color-mix(in oklch,var(--color-warning) 12%,transparent);color:var(--color-warning);border:1px solid color-mix(in oklch,var(--color-warning) 28%,transparent);font-size:.65rem}
+.cell-best-mauve{color:var(--color-info);font-weight:600}
+.cell-best-ppl{color:var(--color-success);font-weight:600}
+/* ── RADAR ─────────────────────────────────────────────────────────────── */
+.radar-wrap{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:1.25rem;margin-top:1rem;box-shadow:var(--shadow-sm)}
+.chart-title{font-size:.78rem;font-weight:700;color:var(--color-text-muted);margin-bottom:.875rem;font-family:var(--font-display)}
+.radar-container{max-width:380px;margin:0 auto}
+.chart-caption{font-size:.72rem;color:var(--color-text-faint);margin-top:.75rem;line-height:1.5;font-style:italic}
+.legend{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.625rem}
+.legend-item{display:flex;align-items:center;gap:.35rem;font-size:.75rem;color:var(--color-text-muted)}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+/* ── CHART CARD ────────────────────────────────────────────────────────── */
+.chart-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:1.25rem;box-shadow:var(--shadow-sm)}
+/* ── GRID LAYOUTS ──────────────────────────────────────────────────────── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.grid-2x2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:768px){.grid-2,.grid-2x2{grid-template-columns:1fr}}
+/* ── STOCHASTICITY TAB ─────────────────────────────────────────────────── */
+.headline-banner{background:color-mix(in oklch,var(--color-primary) 8%,transparent);border:1px solid color-mix(in oklch,var(--color-primary) 22%,transparent);border-radius:var(--radius-lg);padding:1.125rem 1.25rem;margin-bottom:1.5rem;display:flex;gap:.875rem;align-items:flex-start}
+.banner-icon{color:var(--color-warning);flex-shrink:0;margin-top:.1rem}
+.banner-title{font-family:var(--font-display);font-size:.9rem;font-weight:700;color:var(--color-text);margin-bottom:.25rem}
+.banner-body{font-size:.82rem;color:var(--color-text-muted);line-height:1.55}
+.banner-body strong{color:var(--color-error);font-weight:700}
+/* ── HEATMAP ───────────────────────────────────────────────────────────── */
+.heatmap-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin-top:.75rem}
+.heatmap-header{font-size:.68rem;font-weight:700;color:var(--color-text-faint);text-align:center;padding:.4rem .2rem;background:var(--color-surface-offset);border-radius:var(--radius-sm)}
+.heatmap-row-label{font-size:.72rem;color:var(--color-text-muted);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);background:var(--color-surface-offset);border-radius:var(--radius-sm)}
+.heatmap-cell{padding:.5rem .25rem;border-radius:var(--radius-sm);text-align:center;font-family:var(--font-mono);font-size:.75rem;font-weight:600;color:#fff;cursor:default;transition:transform .1s}
+.heatmap-cell:hover{transform:scale(1.05)}
+.heatmap-star{border:2px solid var(--color-warning)!important;outline:1px solid var(--color-warning);position:relative}
+/* ── SLIDER ────────────────────────────────────────────────────────────── */
+.slider-wrap{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:1.125rem 1.25rem;margin:1.25rem 0}
+.slider-label{font-size:.8rem;font-weight:600;color:var(--color-text-muted);margin-bottom:.625rem}
+input[type=range]{width:100%;accent-color:var(--color-primary)}
+.slider-vals{display:flex;justify-content:space-between;font-size:.7rem;color:var(--color-text-faint);margin-top:.3rem;font-family:var(--font-mono)}
+.collapse-warning{display:none;background:color-mix(in oklch,var(--color-error) 10%,transparent);border:1px solid color-mix(in oklch,var(--color-error) 28%,transparent);border-radius:var(--radius-md);padding:.5rem .75rem;font-size:.78rem;color:var(--color-error);margin-top:.625rem;align-items:center;gap:.375rem}
+.collapse-warning.show{display:flex}
+.slider-table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:.75rem}
+.slider-table th{text-align:left;padding:.35rem .5rem;font-size:.68rem;color:var(--color-text-faint);border-bottom:1px solid var(--color-divider);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.slider-table td{padding:.4rem .5rem;border-bottom:1px solid var(--color-divider);color:var(--color-text);font-family:var(--font-mono)}
+.slider-table tr:last-child td{border-bottom:none}
+/* ── NFE BAR / EQUALIZER ───────────────────────────────────────────────── */
+.equalizer-input{display:flex;align-items:center;gap:.75rem;margin:1rem 0}
+.equalizer-input label{font-size:.82rem;color:var(--color-text-muted);white-space:nowrap}
+.equalizer-input input{width:100px;padding:.35rem .5rem;border-radius:var(--radius-sm);border:1px solid var(--color-border);background:var(--color-surface-offset);color:var(--color-text);font-family:var(--font-mono);font-size:.8rem}
+/* ── KEY REVERSALS ─────────────────────────────────────────────────────── */
+.reversals-table{width:100%;border-collapse:collapse;font-size:.82rem;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--color-border)}
+.reversals-table th{padding:.625rem .875rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--color-surface-offset);color:var(--color-text-muted)}
+.reversals-table td{padding:.75rem .875rem;border-bottom:1px solid var(--color-divider);vertical-align:top;line-height:1.5}
+.reversals-table tr:last-child td{border-bottom:none}
+.reversals-table .td-claim{background:color-mix(in oklch,var(--color-error) 5%,var(--color-surface));color:var(--color-text-muted)}
+.reversals-table .td-care{background:color-mix(in oklch,var(--color-success) 5%,var(--color-surface));color:var(--color-text)}
+.reversals-highlight td{border-left:3px solid var(--color-warning)}
+/* ── MODEL CARDS ───────────────────────────────────────────────────────── */
+.model-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:1.25rem}
+.model-card-header{padding:1.125rem 1.25rem;background:var(--color-surface-offset);border-bottom:1px solid var(--color-border);display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.model-card-title{font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--color-text);margin-bottom:.25rem}
+.model-card-meta{font-size:.75rem;color:var(--color-text-muted);display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.model-tabs{display:flex;border-bottom:1px solid var(--color-border)}
+.model-tab{padding:.5rem .875rem;font-size:.78rem;font-weight:500;color:var(--color-text-muted);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all var(--transition)}
+.model-tab.active{color:var(--color-primary);border-bottom-color:var(--color-primary)}
+.model-body{padding:1.125rem 1.25rem}
+.model-panel{display:none}.model-panel.active{display:block}
+.stat-highlight{font-size:.88rem;color:var(--color-text);background:color-mix(in oklch,var(--color-primary) 7%,transparent);border-left:3px solid var(--color-primary);padding:.5rem .75rem;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:.75rem;line-height:1.5}
+pre.code-block{background:var(--color-surface-offset);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:.875rem 1rem;font-family:var(--font-mono);font-size:.78rem;overflow-x:auto;line-height:1.6;color:var(--color-text)}
+/* ── METHODOLOGY ───────────────────────────────────────────────────────── */
+.protocol-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+@media(max-width:900px){.protocol-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.protocol-grid{grid-template-columns:1fr}}
+.protocol-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:1.125rem;box-shadow:var(--shadow-sm);cursor:pointer;transition:all var(--transition);opacity:0;transform:translateY(16px)}
+.protocol-card.visible{opacity:1;transform:translateY(0)}
+.protocol-card:hover{box-shadow:var(--shadow-md);border-color:var(--color-primary)}
+.protocol-card-head{display:flex;align-items:flex-start;gap:.625rem;margin-bottom:.625rem}
+.protocol-icon{width:30px;height:30px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.protocol-title{font-family:var(--font-display);font-size:.85rem;font-weight:700;color:var(--color-text);line-height:1.3}
+.protocol-problem{font-size:.78rem;color:var(--color-text-muted);line-height:1.5}
+.protocol-detail{display:none;font-size:.78rem;color:var(--color-text-muted);margin-top:.625rem;padding-top:.625rem;border-top:1px solid var(--color-divider);line-height:1.55}
+.protocol-card.open .protocol-detail{display:block}
+.framework-table{width:100%;border-collapse:collapse;font-size:.82rem;border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden}
+.framework-table th{background:var(--color-surface-offset);padding:.5rem .75rem;text-align:left;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-muted);border-bottom:1px solid var(--color-border)}
+.framework-table td{padding:.6rem .75rem;border-bottom:1px solid var(--color-divider);color:var(--color-text-muted)}
+.framework-table tr:last-child td{border-bottom:none}
+.framework-table .care-row td{background:color-mix(in oklch,var(--color-primary) 7%,var(--color-surface));color:var(--color-text);font-weight:600}
+.check{color:var(--color-success)}.dash{color:var(--color-text-faint)}
+/* ── SUBMIT TAB ────────────────────────────────────────────────────────── */
+.step-list{list-style:none;counter-reset:steps;margin-bottom:1.5rem}
+.step-item{counter-increment:steps;display:flex;gap:1rem;margin-bottom:1.125rem;align-items:flex-start}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--color-primary);color:#fff;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.125rem}
+.step-body{flex:1}
+.step-title{font-weight:600;font-size:.85rem;color:var(--color-text);margin-bottom:.35rem}
+.trust-tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:1.5rem 0}
+@media(max-width:600px){.trust-tiers{grid-template-columns:1fr}}
+.trust-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:1rem;text-align:center}
+.trust-card-medal{font-size:1.75rem;margin-bottom:.5rem}
+.trust-card-title{font-weight:700;font-size:.85rem;color:var(--color-text);margin-bottom:.35rem}
+.trust-card-desc{font-size:.75rem;color:var(--color-text-muted);line-height:1.5}
+.json-viewer{background:var(--color-surface-offset);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden}
+.json-section{border-bottom:1px solid var(--color-divider)}
+.json-section:last-child{border-bottom:none}
+.json-section-header{display:flex;justify-content:space-between;align-items:center;padding:.625rem 1rem;cursor:pointer;font-family:var(--font-mono);font-size:.78rem;color:var(--color-primary);background:var(--color-surface);transition:background var(--transition)}
+.json-section-header:hover{background:var(--color-surface-offset)}
+.json-section-body{display:none;padding:.75rem 1rem;font-family:var(--font-mono);font-size:.75rem;color:var(--color-text-muted);line-height:1.7;white-space:pre}
+.json-section-body.open{display:block}
+/* ── TOOLTIP ───────────────────────────────────────────────────────────── */
+.tooltip-anchor{border-bottom:1px dashed var(--color-text-faint);cursor:help}
+#tooltip{position:fixed;z-index:9999;max-width:260px;padding:.5rem .75rem;background:var(--color-text);color:var(--color-bg);font-size:.75rem;line-height:1.5;border-radius:var(--radius-md);pointer-events:none;opacity:0;transition:opacity .15s;box-shadow:var(--shadow-md)}
+/* ── COMPARE MODAL ─────────────────────────────────────────────────────── */
+.compare-bar{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--color-text);color:var(--color-bg);padding:.625rem 1.25rem;border-radius:100px;font-size:.82rem;font-weight:600;display:none;align-items:center;gap:.875rem;box-shadow:var(--shadow-md);z-index:200}
+.compare-bar.show{display:flex}
+#modal-overlay{position:fixed;inset:0;background:oklch(0.1 0 0/.5);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem}
+#modal-overlay.show{display:flex}
+.modal{background:var(--color-surface);border-radius:var(--radius-lg);padding:1.5rem;max-width:860px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px oklch(0.1 0 0/.3)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
+.modal-title{font-family:var(--font-display);font-size:1.1rem;font-weight:700}
+/* ── MOBILE ────────────────────────────────────────────────────────────── */
+@media(max-width:767px){
+  .tab-panel{padding:1rem .875rem 3rem}
+  .sidebar{margin-bottom:1rem}
+  #hero{padding:1.5rem .875rem 1.5rem}
+  .hero-cards{grid-template-columns:1fr 1fr}
+  .overview-layout{grid-template-columns:1fr}
+  .trust-tiers{grid-template-columns:1fr}
+}
+/* ── PAPER FIGURES TAB ─────────────────────────────────────────────────── */
+.figures-section{margin-bottom:2.5rem}
+.figures-section-title{display:flex;align-items:center;gap:.625rem;font-family:var(--font-display);font-size:.95rem;font-weight:700;color:var(--color-text);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid var(--color-border)}
+.figures-section-title .sec-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--color-primary);color:#fff;font-size:.72rem;font-weight:700;flex-shrink:0}
+.fig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(480px,1fr));gap:1.25rem}
+.fig-grid-3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:900px){.fig-grid-3{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.fig-grid,.fig-grid-3{grid-template-columns:1fr}}
+.fig-card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.fig-card:hover{transform:translateY(-4px) scale(1.012);box-shadow:0 12px 32px rgba(0,0,0,.18);border-color:var(--color-primary)}
+.fig-card-img{width:100%;display:block;background:var(--color-surface-offset)}
+/* equal-height image area for sub-figure grids */
+.fig-img-fixed{height:200px;overflow:hidden;background:var(--color-surface-offset);display:flex;align-items:center;justify-content:center}
+.fig-img-fixed img{width:100%;height:100%;object-fit:contain;object-position:center;display:block}
+.fig-card-body{padding:.875rem 1rem 1rem}
+.fig-num-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem}
+.fig-num{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;background:var(--color-primary);padding:.15rem .45rem;border-radius:var(--radius-sm)}
+.fig-title{font-family:var(--font-display);font-size:.875rem;font-weight:700;color:var(--color-text);line-height:1.3}
+.fig-caption{font-size:.78rem;color:var(--color-text-muted);line-height:1.55;margin-top:.5rem}
+.fig-interactive{display:inline-flex;align-items:center;gap:.3rem;margin-top:.625rem;font-size:.73rem;font-weight:600;color:var(--color-primary);background:color-mix(in oklch,var(--color-primary) 8%,transparent);border:1px solid color-mix(in oklch,var(--color-primary) 20%,transparent);border-radius:var(--radius-sm);padding:.25rem .55rem;cursor:pointer;text-decoration:none;transition:background var(--transition)}
+.fig-interactive:hover{background:color-mix(in oklch,var(--color-primary) 15%,transparent)}
+.fig-card-full{grid-column:1/-1}
+/* ── LIGHTBOX ──────────────────────────────────────────────────────────── */
+/* ── RANK + TYPE BADGES ────────────────────────────────────────────────── */
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:.62rem;font-weight:800;margin-right:.3rem;flex-shrink:0;vertical-align:middle;line-height:1}
+.rank-1{background:#f59e0b;color:#fff;box-shadow:0 0 0 2px rgba(245,158,11,.25)}
+.rank-2{background:#94a3b8;color:#fff;box-shadow:0 0 0 2px rgba(148,163,184,.25)}
+.rank-3{background:#b45309;color:#fff;box-shadow:0 0 0 2px rgba(180,83,9,.25)}
+.rank-other{background:var(--color-surface-offset);color:var(--color-text-faint);font-weight:600}
+.type-badge{display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;letter-spacing:.06em;padding:.12rem .38rem;border-radius:3px;white-space:nowrap;line-height:1.4}
+.type-dllm{background:var(--color-primary);color:#fff}
+.type-ar{background:var(--color-error);color:#fff}
+.foundation-cell{font-size:.72rem;font-family:var(--font-mono);color:var(--color-text-muted)}
+.foundation-unconfirmed{color:var(--color-text-faint);font-style:italic}
+/* rank badge in Tabulator # column */
+.tab-rank-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:.65rem;font-weight:800;line-height:1}
+.tab-rank-1{background:#f59e0b;color:#fff}
+.tab-rank-2{background:#94a3b8;color:#fff}
+.tab-rank-3{background:#b45309;color:#fff}
+.tab-rank-n{color:var(--color-text-faint);font-family:var(--font-mono);font-size:.7rem}
+.fig-lightbox{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s ease;background:rgba(0,0,0,0);backdrop-filter:blur(0px)}
+.fig-lightbox.open{opacity:1;pointer-events:all;background:rgba(0,0,0,.82);backdrop-filter:blur(6px)}
+.fig-lb-wrap{position:relative;display:flex;flex-direction:column;align-items:center;max-width:92vw;animation:lbIn .22s ease}
+@keyframes lbIn{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+.fig-lb-img-outer{overflow:hidden;border-radius:var(--radius-lg);background:var(--color-surface);box-shadow:0 24px 64px rgba(0,0,0,.6);max-height:78vh;display:flex;align-items:center;justify-content:center;cursor:zoom-in;position:relative}
+.fig-lb-img-outer.zoomed{cursor:grab}
+.fig-lb-img-outer.zoomed:active{cursor:grabbing}
+.fig-lb-img{display:block;max-width:88vw;max-height:74vh;object-fit:contain;transform-origin:center center;transition:transform .22s ease;image-rendering:auto}
+.fig-lb-bar{display:flex;align-items:center;gap:.625rem;margin-top:.75rem;width:100%;max-width:88vw}
+.fig-lb-caption-wrap{flex:1;min-width:0}
+.fig-lb-title{font-family:var(--font-display);font-size:.82rem;font-weight:700;color:#fff;margin-bottom:.2rem}
+.fig-lb-caption{font-size:.72rem;color:rgba(255,255,255,.65);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fig-lb-caption.expanded{-webkit-line-clamp:unset}
+.fig-lb-zoom-btns{display:flex;gap:.375rem;flex-shrink:0}
+.fig-lb-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .15s;backdrop-filter:blur(4px);line-height:1}
+.fig-lb-btn:hover{background:rgba(255,255,255,.22)}
+.fig-lb-btn.wide{width:auto;padding:0 .6rem;font-size:.7rem}
+.fig-lb-close{position:fixed;top:.875rem;right:.875rem;z-index:9001;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.5);color:#fff;font-size:1.1rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;backdrop-filter:blur(4px)}
+.fig-lb-close:hover{background:rgba(255,255,255,.2)}
+.fig-lb-hint{font-size:.65rem;color:rgba(255,255,255,.35);margin-top:.375rem;text-align:center}
+/* ── REDUCED MOTION ────────────────────────────────────────────────────── */
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+/* ── TABULATOR DARK ────────────────────────────────────────────────────── */
+[data-theme="dark"] .tabulator{background:var(--color-surface)!important}
+[data-theme="dark"] .tabulator .tabulator-row{background:var(--color-surface)!important}
+[data-theme="dark"] .tabulator .tabulator-row:hover{background:var(--color-surface-offset)!important}
+</style>
+</head>
+<body>
+<!-- ── NAV ──────────────────────────────────────────────────────────────── -->
+<nav id="nav" role="navigation" aria-label="Primary navigation">
+  <div class="nav-logo">
+    <svg viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <circle cx="13" cy="13" r="12" stroke="var(--color-primary)" stroke-width="1.5"/>
+      <path d="M18 8.5C16.5 7 14.5 6 12 6C7.58 6 4 9.58 4 14s3.58 8 8 8c2.5 0 4.5-1 5.5-2.5" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round"/>
+      <path d="M17 11l3-2 3 2M20 9v7" stroke="var(--color-primary)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <span class="nav-logo-text">CARE Leaderboard</span>
+      <span class="nav-logo-tag">Compute-Aware Remasking Evaluation</span>
+    </div>
+  </div>
+  <div class="nav-tabs" role="tablist">
+    <button class="nav-tab active" role="tab" aria-selected="true"  onclick="showTab('overview')"       >Overview</button>
+    <button class="nav-tab"        role="tab" aria-selected="false" onclick="showTab('pareto')"         >Pareto Explorer</button>
+    <button class="nav-tab"        role="tab" aria-selected="false" onclick="showTab('stochasticity')"  >Stochasticity Lab</button>
+    <button class="nav-tab"        role="tab" aria-selected="false" onclick="showTab('compute')"        >Compute Audit</button>
+    <button class="nav-tab"        role="tab" aria-selected="false" onclick="showTab('deepdive')"       >Model Deep-Dive</button>
+    <button class="nav-tab"        role="tab" aria-selected="false" onclick="showTab('methodology')"    >Methodology</button>
+    <button class="nav-tab"        role="tab" aria-selected="false" onclick="showTab('figures')"        >Paper Figures</button>
+    <button class="nav-tab"        role="tab" aria-selected="false" onclick="showTab('submit')"         >Submit</button>
+  </div>
+  <div class="nav-actions">
+    <a href="#" class="btn-icon" title="GitHub (placeholder)" aria-label="GitHub repository">
+      <i data-lucide="github" style="width:15px;height:15px;"></i>
+    </a>
+    <button class="btn-icon" onclick="toggleTheme()" aria-label="Toggle dark/light mode" title="Toggle theme">
+      <i data-lucide="sun" id="theme-icon" style="width:15px;height:15px;"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────────────────────────────────── -->
+<section id="hero" aria-label="Project overview">
+  <div>
+    <div class="hero-eyebrow"><i data-lucide="flask-conical" style="width:12px;height:12px;"></i>NeurIPS 2026 Companion</div>
+    <h1 class="hero-h1">CARE Leaderboard</h1>
+    <h2 class="hero-h2">Compute-Aware Remasking Evaluation for MDLMs</h2>
+    <p class="hero-body">Seven remasking papers. Contradictory conclusions. CARE reveals why — and which strategies actually win under controlled compute, metric, and stochasticity conditions.</p>
+    <div class="hero-ctas">
+      <button class="btn btn-primary" onclick="showTab('overview')"><i data-lucide="table-2" style="width:14px;height:14px;"></i>Explore Results</button>
+      <a href="#" class="btn btn-secondary"><i data-lucide="github" style="width:14px;height:14px;"></i>Run Locally <span class="badge b-placeholder" style="margin-left:.25rem">[PLACEHOLDER]</span></a>
+      <a href="#" class="btn btn-ghost"><i data-lucide="file-text" style="width:14px;height:14px;"></i>Read Paper <span class="badge b-placeholder" style="margin-left:.25rem">[PLACEHOLDER]</span></a>
+    </div>
+  </div>
+  <div>
+    <div class="hero-cards">
+      <div class="hero-card c-teal">
+        <div class="card-ico c-teal"><i data-lucide="zap" style="width:14px;height:14px;"></i></div>
+        <div class="card-num hero-counter" data-target="4" data-suffix="×">0×</div>
+        <div class="card-lbl">Hidden NFE variation at same nominal steps</div>
+      </div>
+      <div class="hero-card c-gold">
+        <div class="card-ico c-gold"><i data-lucide="repeat" style="width:14px;height:14px;"></i></div>
+        <div class="card-num" style="font-size:1.25rem">PPL vs<br>MAUVE</div>
+        <div class="card-lbl">Rankings reverse by metric choice</div>
+      </div>
+      <div class="hero-card c-red key-finding">
+        <div class="card-ico c-red"><i data-lucide="x-circle" style="width:14px;height:14px;"></i></div>
+        <div class="card-num" style="color:var(--color-error)">p=0.020</div>
+        <div class="card-lbl">Informed remasking cancels diversity gains</div>
+        <div class="card-sub">MAUVE gap 0.296±0.042, 256 steps, t=0.25</div>
+      </div>
+      <div class="hero-card c-green">
+        <div class="card-ico c-green"><i data-lucide="trending-up" style="width:14px;height:14px;"></i></div>
+        <div class="card-num hero-counter" data-target="2" data-suffix="–4×">0×</div>
+        <div class="card-lbl">Efficiency gains: no-remask + mild stochasticity</div>
+        <div class="card-sub">t:0.0→0.1 gives MAUVE 0.66→0.98 for free</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TAB: OVERVIEW ─────────────────────────────────────────────────────── -->
+<div id="tab-overview" class="tab-panel active" role="tabpanel" aria-label="Overview leaderboard">
+  <div style="margin-bottom:1rem">
+    <h2 class="sec-title">Leaderboard</h2>
+    <p class="sec-sub">Sort and filter all strategy × model × config results. Rankings change with metric choice — that's the point.</p>
+  </div>
+  <!-- Cross-model CARE Summary — Tables 11 & 20 -->
+  <div class="chart-card" style="margin-bottom:1.25rem">
+    <div class="chart-title">CARE Cross-Model Summary (Tables 11 &amp; 20)</div>
+    <p style="font-size:.82rem;color:var(--color-text-muted);margin-bottom:.875rem">All models evaluated at 256 nominal steps, English-filtered, OWT prefix=64, gen=128, t=0.25. MAUVE gap = none minus high_entropy (positive = none wins). HumanEval pass@1 at t=0.0, compute-matched.</p>
+    <div id="care-leaderboard-summary"></div>
+  </div>
+  <div class="overview-layout">
+    <aside class="sidebar" aria-label="Filters">
+      <div id="filter-summary" class="filter-summary">128 steps | t=0.0 | all models</div>
+      <div class="filter-group">
+        <span class="filter-label">Model</span>
+        <label class="filter-opt"><input type="checkbox" class="filter-model" value="LLaDA-8B-Base" checked> LLaDA-8B-Base</label>
+        <label class="filter-opt"><input type="checkbox" class="filter-model" value="LLaDA-MoE-7B-A1B" checked> LLaDA-MoE-7B-A1B</label>
+        <label class="filter-opt"><input type="checkbox" class="filter-model" value="Dream-7B-Base" checked> Dream-7B-Base</label>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Step Budget</span>
+        <label class="filter-opt"><input type="radio" name="filter-steps" value="all"> All</label>
+        <label class="filter-opt"><input type="radio" name="filter-steps" value="64"> 64 steps</label>
+        <label class="filter-opt"><input type="radio" name="filter-steps" value="128" checked> 128 steps</label>
+        <label class="filter-opt"><input type="radio" name="filter-steps" value="256"> 256 steps</label>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Stochasticity <span class="tooltip-anchor" data-tooltip="unmask_temp">(t)</span></span>
+        <label class="filter-opt"><input type="checkbox" class="filter-temp" value="0.0" checked> 0.0 (deterministic)</label>
+        <label class="filter-opt"><input type="checkbox" class="filter-temp" value="0.1" checked> 0.1 (mild)</label>
+        <label class="filter-opt"><input type="checkbox" class="filter-temp" value="0.25"> 0.25 (moderate)</label>
+        <label class="filter-opt"><input type="checkbox" class="filter-temp" value="0.5"> 0.5 (high)</label>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Sort Priority</span>
+        <select class="filter-select" id="sort-select" onchange="applySort()">
+          <option value="mauve">MAUVE ↑</option>
+          <option value="ppl">PPL ↓</option>
+          <option value="actual_nfe">NFE Efficiency ↑</option>
+          <option value="self_bleu">Self-BLEU ↓</option>
+          <option value="distinct3">Distinct-3 ↑</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Trust</span>
+        <label class="filter-opt"><input type="checkbox" class="filter-trust" value="CARE" checked> CARE-verified</label>
+        <label class="filter-opt"><input type="checkbox" class="filter-trust" value="Paper" checked> Paper-reported</label>
+      </div>
+    </aside>
+    <div class="table-area">
+      <div class="table-warn"><i data-lucide="alert-triangle" style="width:13px;height:13px;"></i>Rankings shown by selected sort metric. No single "overall rank" exists — switch metrics to see reversals.</div>
+      <div id="leaderboard-table"></div>
+      <div class="radar-wrap">
+        <div class="chart-title">Strategy Profile (hover rows to update)</div>
+        <div class="radar-container">
+          <canvas id="radarChart" aria-label="Radar chart comparing strategy profiles across 6 metrics: MAUVE, Fluency, Diversity, Vocab, Efficiency, Stability"></canvas>
+        </div>
+        <div class="legend" id="radar-legend"></div>
+        <p class="chart-caption">6 axes normalized to [0,1]. Distinct-3 vocabulary collapse is detectable even when Self-BLEU appears diverse — only visible in multi-metric view.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB: PARETO ────────────────────────────────────────────────────────── -->
+<div id="tab-pareto" class="tab-panel" role="tabpanel" aria-label="Pareto Explorer">
+  <h2 class="sec-title">Pareto Explorer</h2>
+  <p class="sec-sub">PPL vs MAUVE trade-off. Filled = deterministic (t=0.0); hollow = stochastic. Point size ∝ <span class="tooltip-anchor" data-tooltip="NFE">NFE</span>.</p>
+  <div style="display:flex;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center">
+    <label style="font-size:.8rem;color:var(--color-text-muted)">Show Pareto Front:
+      <input type="checkbox" id="show-pareto" checked onchange="renderPareto()" style="accent-color:var(--color-primary);margin-left:.3rem">
+    </label>
+    <label style="font-size:.8rem;color:var(--color-text-muted)">Highlight Stochastic:
+      <input type="checkbox" id="show-stochastic" checked onchange="renderPareto()" style="accent-color:var(--color-primary);margin-left:.3rem">
+    </label>
+  </div>
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-title">LLaDA-8B-Base — MAUVE vs PPL</div>
+      <div id="pareto-llada" style="height:380px" aria-label="Plotly scatter: LLaDA-8B-Base MAUVE vs PPL Pareto chart"></div>
+      <p class="chart-caption">Stochastic configs dominate the frontier — higher MAUVE at every PPL level.</p>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Dream-7B-Base — MAUVE vs PPL</div>
+      <div id="pareto-dream" style="height:380px" aria-label="Plotly scatter: Dream-7B-Base MAUVE vs PPL Pareto chart"></div>
+      <p class="chart-caption">Best strategy changes at every budget level — confirming metric and budget dependence on an independent model family.</p>
+    </div>
+  </div>
+  <div class="chart-card" style="margin-top:1.25rem;background:color-mix(in oklch,var(--color-primary) 6%,var(--color-surface))">
+    <div class="chart-title" style="color:var(--color-primary)">The Pareto Insight</div>
+    <p style="font-size:.85rem;color:var(--color-text-muted);line-height:1.6">On LLaDA, stochastic configurations <strong style="color:var(--color-text)">dominate the frontier</strong> — achieving higher MAUVE at every PPL level. On Dream, the "best" strategy depends on both the step budget and which metric you prioritize. There is no single winner.</p>
+  </div>
+</div>
+
+<!-- ── TAB: STOCHASTICITY LAB ─────────────────────────────────────────────── -->
+<div id="tab-stochasticity" class="tab-panel" role="tabpanel" aria-label="Stochasticity Lab">
+  <h2 class="sec-title">Stochasticity Lab</h2>
+  <div class="headline-banner">
+    <div class="banner-icon"><i data-lucide="zap" style="width:18px;height:18px;"></i></div>
+    <div>
+      <div class="banner-title">⚡ CARE's Most Novel Finding</div>
+      <div class="banner-body">Varying <span class="tooltip-anchor" data-tooltip="unmask_temp">unmask_temp</span> from 0.0 to 0.1 improves <span class="tooltip-anchor" data-tooltip="MAUVE">MAUVE</span> from 0.66 to 0.98 — a larger effect than ANY remasking strategy. But combining stochasticity with <span class="tooltip-anchor" data-tooltip="high_entropy">high_entropy</span> remasking causes <strong>collapse (p=0.020)</strong>.</div>
+    </div>
+  </div>
+  <div class="grid-2x2" style="margin-bottom:1.5rem">
+    <div class="chart-card"><div class="chart-title">t = 0.0 (deterministic)</div><canvas id="stoChart0" height="180" aria-label="MAUVE vs NFE for t=0.0"></canvas></div>
+    <div class="chart-card"><div class="chart-title">t = 0.1 (mild stochasticity)</div><canvas id="stoChart1" height="180" aria-label="MAUVE vs NFE for t=0.1"></canvas></div>
+    <div class="chart-card"><div class="chart-title">t = 0.25 (moderate)</div><canvas id="stoChart2" height="180" aria-label="MAUVE vs NFE for t=0.25"></canvas></div>
+    <div class="chart-card"><div class="chart-title">t = 0.5 (high) — ⚠ Collapse zone</div><canvas id="stoChart3" height="180" aria-label="MAUVE vs NFE for t=0.5, shows high_entropy collapse"></canvas></div>
+  </div>
+  <div class="slider-wrap">
+    <div class="slider-label">Explore: Set <span class="tooltip-anchor" data-tooltip="unmask_temp">unmask_temp</span>:</div>
+    <input type="range" id="temp-slider" min="0" max="3" step="1" value="0" oninput="updateSlider(this.value)">
+    <div class="slider-vals"><span>0.0</span><span>0.1</span><span>0.25</span><span>0.5</span></div>
+    <div class="collapse-warning" id="collapse-warn"><i data-lucide="alert-triangle" style="width:13px;height:13px;"></i>⚠ Collapse zone: high_entropy remasking significantly reduces MAUVE quality at this temperature.</div>
+    <table class="slider-table" id="slider-table">
+      <thead><tr><th>Strategy</th><th>MAUVE at selected t</th><th>NFE (128 steps)</th></tr></thead>
+      <tbody id="slider-tbody"></tbody>
+    </table>
+  </div>
+  <div class="chart-card" style="margin-bottom:1.25rem">
+    <div class="chart-title"><span class="tooltip-anchor" data-tooltip="MAUVE">MAUVE</span> Gap Heatmap — none minus high_entropy (positive = none wins)</div>
+    <div class="heatmap-grid" id="heatmap-grid"></div>
+    <p class="chart-caption">Starred cell: 256 steps, t=0.25 — gap=0.296±0.042, t-stat=7.06, <strong>p=0.020</strong>. Color scale: white (gap≈0) → deep red (gap≥0.4).</p>
+  </div>
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-title"><span class="tooltip-anchor" data-tooltip="Self-BLEU">Self-BLEU</span> vs Temperature (256 steps)</div>
+      <canvas id="selfbleuChart" height="200" aria-label="Self-BLEU vs unmask_temp for none, random, high_entropy at 256 steps"></canvas>
+      <p class="chart-caption">Lower = more pairwise diversity. high_entropy consistently most diverse — yet worst MAUVE.</p>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><span class="tooltip-anchor" data-tooltip="Distinct-3">Distinct-3</span> vs Temperature (256 steps)</div>
+      <canvas id="distinct3Chart" height="200" aria-label="Distinct-3 vocabulary richness vs unmask_temp for 256 steps"></canvas>
+      <p class="chart-caption">high_entropy vocabulary collapses at t≥0.25 — explaining distributional collapse despite low Self-BLEU.</p>
+    </div>
+  </div>
+  <!-- PPL vs Temperature — Table 16 -->
+  <div class="chart-card" style="margin-top:1.25rem">
+    <div class="chart-title"><span class="tooltip-anchor" data-tooltip="PPL">PPL</span> vs Temperature — The Fluency Trade-off (Table 16)</div>
+    <p style="font-size:.82rem;color:var(--color-text-muted);margin-bottom:.875rem">Stochasticity improves MAUVE (see heatmap above) but degrades fluency. The two metrics tell opposite stories — single-metric evaluation hides this trade-off.</p>
+    <div class="grid-2">
+      <div>
+        <div class="chart-title" style="font-size:.78rem;font-weight:600;margin-bottom:.5rem">none strategy — 3 step budgets</div>
+        <canvas id="pplNoneChart" height="200" aria-label="PPL vs temperature for none strategy at 64, 128, 256 steps"></canvas>
+      </div>
+      <div>
+        <div class="chart-title" style="font-size:.78rem;font-weight:600;margin-bottom:.5rem">high_entropy strategy — 3 step budgets</div>
+        <canvas id="pplHEntChart" height="200" aria-label="PPL vs temperature for high_entropy strategy at 64, 128, 256 steps"></canvas>
+      </div>
+    </div>
+    <p class="chart-caption">PPL via Llama-3-8B, LLaDA-8B-Base, English-filtered. Lower = more fluent. none degrades steeply with stochasticity; high_entropy shows less PPL sensitivity but worse absolute fluency throughout.</p>
+  </div>
+  <!-- Three-way ANOVA — Table 8 -->
+  <div class="chart-card" style="margin-top:1.25rem">
+    <div class="chart-title">Three-Way ANOVA — Effect Sizes (Table 8)</div>
+    <p style="font-size:.82rem;color:var(--color-text-muted);margin-bottom:.875rem">Temperature dominates (η²=0.908). The Strategy × Temperature interaction (η²=0.469, p=0.002) confirms that strategy choice cannot be evaluated without specifying the stochasticity regime.</p>
+    <div id="anova-table"></div>
+  </div>
+</div>
+
+<!-- ── TAB: COMPUTE AUDIT ──────────────────────────────────────────────────── -->
+<div id="tab-compute" class="tab-panel" role="tabpanel" aria-label="Compute Audit">
+  <h2 class="sec-title">Compute Audit</h2>
+  <p class="sec-sub">What "256 steps" actually costs in forward passes (<span class="tooltip-anchor" data-tooltip="NFE">NFE</span>) — 1× to 4× variation hidden in plain sight.</p>
+  <div class="chart-card" style="margin-bottom:1.25rem">
+    <div class="chart-title">Actual NFE at 256 Nominal Steps — by Strategy</div>
+    <canvas id="nfeBar" style="height:190px;max-height:190px" aria-label="Horizontal bar chart: actual NFE per strategy at 256 nominal steps, showing 1x to 4x variation"></canvas>
+    <p class="chart-caption">Any paper reporting improvement at 256 steps without actual NFE is making an unfair comparison. Dashed line = 256 nominal steps.</p>
+  </div>
+  <div class="chart-card" style="margin-bottom:1.25rem">
+    <div class="chart-title">NFE Budget Equalizer</div>
+    <p style="font-size:.82rem;color:var(--color-text-muted);margin-bottom:.75rem">At equal compute, how many steps can each strategy run?</p>
+    <div class="equalizer-input">
+      <label>Target <span class="tooltip-anchor" data-tooltip="NFE">NFE</span>:</label>
+      <input type="number" id="nfe-target" value="257" min="64" max="600" oninput="updateEqualizer()">
+    </div>
+    <div id="equalizer-table"></div>
+  </div>
+  <div>
+    <div class="sec-title" style="font-size:1rem;margin-bottom:.75rem">How Conclusions Change Under CARE (cf. Table 4)</div>
+    <table class="reversals-table">
+      <thead><tr><th>Without Controlled Evaluation</th><th>Under CARE</th></tr></thead>
+      <tbody>
+        <tr><td class="td-claim">Strategy X improves at 256 steps</td><td class="td-care">X uses 3.4× more compute; improvement vanishes at matched NFE</td></tr>
+        <tr><td class="td-claim">Strategy Y achieves best quality</td><td class="td-care">Y wins PPL but loses MAUVE — metric-dependent</td></tr>
+        <tr class="reversals-highlight"><td class="td-claim">Informed remasking improves generation</td><td class="td-care" style="color:var(--color-error);font-weight:600">At high steps + stochastic unmasking, it REDUCES quality by 0.30 (p=0.020)</td></tr>
+        <tr><td class="td-claim">Our remasking gains MAUVE by 0.15</td><td class="td-care" style="color:var(--color-success)">t: 0.0→0.1 gains 0.3 MAUVE — for free, 2–4× less compute</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <!-- Remask Fraction Ablation — Table 9 -->
+  <div style="margin-top:1.75rem">
+    <div class="sec-title" style="font-size:1rem;margin-bottom:.375rem">Causal Evidence: Remask Fraction Ablation (Table 9)</div>
+    <p style="font-size:.83rem;color:var(--color-text-muted);margin-bottom:.875rem">MAUVE degrades monotonically as remask fraction increases — confirming that high_entropy's quality collapse is caused by persistent token churn, not evaluation noise. Single seed, high_entropy@256, t=0.25.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start">
+      <div style="min-width:0"><canvas id="remaskAblChart" style="height:180px;max-height:180px;width:100%" aria-label="Bar chart: MAUVE and PPL vs remask fraction for high_entropy at 256 steps t=0.25"></canvas></div>
+      <div id="remask-abl-table" style="min-width:0"></div>
+    </div>
+  </div>
+  <!-- Compute-Matched Comparison — Table 4 -->
+  <div class="chart-card" style="margin-top:1.75rem">
+    <div class="chart-title">Compute-Matched Quality Comparison (Table 4)</div>
+    <p style="font-size:.82rem;color:var(--color-text-muted);margin-bottom:.875rem">At identical NFE budget, none outperforms all remasking strategies on MAUVE. PPL remains higher (worse) for all remasking strategies across all compute levels.</p>
+    <div id="compute-matched-table"></div>
+  </div>
+</div>
+
+<!-- ── TAB: DEEP DIVE ─────────────────────────────────────────────────────── -->
+<div id="tab-deepdive" class="tab-panel" role="tabpanel" aria-label="Model Deep-Dive">
+  <h2 class="sec-title">Model Deep-Dive</h2>
+  <p class="sec-sub">Per-model results, configs, and reproduction commands.</p>
+
+  <!-- LLaDA-8B -->
+  <div class="model-card">
+    <div class="model-card-header">
+      <div>
+        <div class="model-card-title">LLaDA-8B-Base</div>
+        <div class="model-card-meta">
+          <span class="badge b-verified">Dense</span><span class="badge b-verified">8B params</span><span class="badge b-verified">Open weights</span>
+          <span style="color:var(--color-text-faint)">Masked Diffusion LM</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem;font-size:.78rem">
+        <a href="#" class="btn btn-ghost" style="padding:.3rem .625rem;font-size:.75rem">Paper <span class="badge b-placeholder">[PLACEHOLDER]</span></a>
+        <a href="#" class="btn btn-ghost" style="padding:.3rem .625rem;font-size:.75rem">HF Model <span class="badge b-placeholder">[PLACEHOLDER]</span></a>
+      </div>
+    </div>
+    <div class="model-tabs">
+      <button class="model-tab active" onclick="switchModelTab('llada','overview')">Overview</button>
+      <button class="model-tab" onclick="switchModelTab('llada','results')">Results</button>
+      <button class="model-tab" onclick="switchModelTab('llada','config')">Config</button>
+      <button class="model-tab" onclick="switchModelTab('llada','reproduce')">Reproduce</button>
+      <button class="model-tab" onclick="switchModelTab('llada','downstream')">Downstream</button>
+    </div>
+    <div class="model-body">
+      <div class="model-panel active" id="llada-overview">
+        <div class="stat-highlight">MAUVE jumps from 0.663 (t=0.0) to <strong>0.976 (t=0.1)</strong> with no-remasking — the single largest improvement observed across all strategies.</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">Best MAUVE-efficient config: <code style="font-family:var(--font-mono);font-size:.8rem">none@64 steps, t=0.25 → MAUVE=0.984</code>. This achieves near-peak quality at 1/4 the NFE of high_entropy@256.</p>
+      </div>
+      <div class="model-panel" id="llada-results">
+        <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">Deterministic results (Table 5) — stochastic sweep in Stochasticity Lab tab.</p>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="llada-results-table"></table></div>
+      </div>
+      <div class="model-panel" id="llada-config">
+        <ul style="font-size:.82rem;color:var(--color-text-muted);line-height:1.9;list-style:none;padding:0">
+          <li>📋 Setup: 64-token OpenWebText prefix → generate 128 tokens</li>
+          <li>🔤 English filter: ASCII ≥ 0.85, CJK ≤ 0.02</li>
+          <li>🌱 Seeds: 3 (key comparisons), 1 (ablations)</li>
+          <li>💻 Hardware: NVIDIA A100 80GB, total ~500 GPU-hours</li>
+          <li>📊 Metrics: MAUVE, PPL (GPT-2 XL), Self-BLEU, Distinct-3, NFE</li>
+        </ul>
+      </div>
+      <div class="model-panel" id="llada-reproduce">
+        <pre class="code-block">$ care-eval run \
+    --model llada-8b-base \
+    --strategy none high_entropy \
+    --steps 64 128 256 \
+    --unmask_temp 0.0 0.1 0.25 0.5 \
+    --seeds 3 \
+    --tasks openwebtext_prefix</pre>
+        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">[PLACEHOLDER — install pending]</span></p>
+      </div>
+      <div class="model-panel" id="llada-downstream">
+        <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">GSM8K accuracy (%) — LLaDA-8B-Instruct, 4-shot, n=200, SE≈3.5%. No significant differences across configurations confirm NFE confounds extend to code generation (Table 17).</p>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="gsm8k-table"></table></div>
+        <div style="margin-top:1.25rem">
+          <div style="font-size:.82rem;font-weight:600;color:var(--color-text);margin-bottom:.375rem">HumanEval pass@1 (%) — Table 10</div>
+          <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.625rem">n=100, 3-seed mean±SE via lm-eval. Nominal-step comparison favors high_entropy (31.7 vs 28.3), but at matched NFE=437 the compute-matched none* achieves 32.0 — <strong style="color:var(--color-error)">reversing the ranking</strong>. The NFE confound extends to code generation.</p>
+          <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="humaneval-table"></table></div>
+          <p style="font-size:.72rem;color:var(--color-text-faint);margin-top:.375rem">* none adjusted to higher nominal steps to match NFE=437. Highlighted = highest pass@1 per block.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LLaDA-MoE -->
+  <div class="model-card">
+    <div class="model-card-header">
+      <div>
+        <div class="model-card-title">LLaDA-MoE-7B-A1B</div>
+        <div class="model-card-meta"><span class="badge b-verified">MoE</span><span class="badge b-verified">~1B active params</span><span class="badge b-verified">Open weights</span></div>
+      </div>
+    </div>
+    <div class="model-tabs">
+      <button class="model-tab active" onclick="switchModelTab('moe','overview')">Overview</button>
+      <button class="model-tab" onclick="switchModelTab('moe','results')">Results</button>
+    </div>
+    <div class="model-body">
+      <div class="model-panel active" id="moe-overview">
+        <div class="stat-highlight">Cross-architecture validation: stochasticity replicates — <strong>+0.507 MAUVE</strong> at t=0.1 vs t=0.0 (none@256).</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">Dense 8B vs MoE ~1B active — both models show the same stochasticity × remasking interaction pattern, confirming CARE findings are architecture-agnostic.</p>
+      </div>
+      <div class="model-panel" id="moe-results">
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="moe-results-table"></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dream-7B -->
+  <div class="model-card">
+    <div class="model-card-header">
+      <div>
+        <div class="model-card-title">Dream-7B-Base</div>
+        <div class="model-card-meta"><span class="badge b-verified">Independent family</span><span class="badge b-verified">7B params</span><span class="badge b-verified">Open weights</span></div>
+      </div>
+    </div>
+    <div class="model-tabs">
+      <button class="model-tab active" onclick="switchModelTab('dream','overview')">Overview</button>
+      <button class="model-tab" onclick="switchModelTab('dream','results')">Results</button>
+    </div>
+    <div class="model-body">
+      <div class="model-panel active" id="dream-overview">
+        <div class="stat-highlight">Best strategy changes at every budget level — metric dependence is extreme on Dream.</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">maskgit t=0 achieves best PPL but worst MAUVE consistently. entropy@128 t=0.0 achieves MAUVE=0.977 — the highest single result across all Dream configs.</p>
+      </div>
+      <div class="model-panel" id="dream-results">
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="dream-results-table"></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB: METHODOLOGY ───────────────────────────────────────────────────── -->
+<div id="tab-methodology" class="tab-panel" role="tabpanel" aria-label="Methodology">
+  <h2 class="sec-title">CARE Evaluation Protocol</h2>
+  <p class="sec-sub">Seven practices that prevent contradictory conclusions. Click any card to expand.</p>
+  <div class="protocol-grid" id="protocol-grid"></div>
+  <div style="margin-top:2rem">
+    <div class="sec-title" style="font-size:1rem;margin-bottom:.875rem">Framework Comparison (Table 2)</div>
+    <div style="overflow-x:auto">
+      <table class="framework-table">
+        <thead><tr><th>Framework</th><th>Multi-metric</th><th>NFE</th><th>Stoch. ctrl</th><th>Remask</th><th>Interaction</th></tr></thead>
+        <tbody>
+          <tr><td>HELM</td><td class="check">✓</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td></tr>
+          <tr><td>dLLM</td><td class="check">✓</td><td style="color:var(--color-warning)">partial</td><td style="color:var(--color-warning)">partial</td><td class="dash">—</td><td class="dash">—</td></tr>
+          <tr><td>Gen. Frontiers</td><td>PPL-ent.</td><td>implicit</td><td>implicit</td><td class="dash">—</td><td class="dash">—</td></tr>
+          <tr><td>ReMDM</td><td class="check">✓</td><td class="check">✓</td><td style="color:var(--color-warning)">partial</td><td style="color:var(--color-warning)">partial</td><td class="dash">—</td></tr>
+          <tr class="care-row"><td><strong>CARE (ours)</strong></td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <!-- Three-Seed Reproducibility — Table 12 -->
+  <div style="margin-top:2rem">
+    <div class="sec-title" style="font-size:1rem;margin-bottom:.375rem">Three-Seed Reproducibility (Table 12)</div>
+    <p style="font-size:.83rem;color:var(--color-text-muted);margin-bottom:.875rem">MAUVE across 3 independent seeds. Highlighted rows (SE ≥ 0.030) show where single-seed conclusions are unreliable — directly motivating Protocol 6 (Report Uncertainty).</p>
+    <div style="overflow-x:auto" id="three-seed-table"></div>
+  </div>
+  <!-- Language Filter Acceptance Rates — Table 19 -->
+  <div style="margin-top:2rem">
+    <div class="sec-title" style="font-size:1rem;margin-bottom:.375rem">Language Filter Acceptance Rates — OWT (Table 18)</div>
+    <p style="font-size:.83rem;color:var(--color-text-muted);margin-bottom:.875rem">Acceptance rates (%) after applying the CARE language filter (ASCII ≥ 0.85, CJK ≤ 0.02). High stochasticity + aggressive remasking produces the most off-target language — dropping to 90% acceptance at t=0.5. LM1B stays 98%+ throughout, confirming the filter detects real multilingual leakage rather than noise (Table 19).</p>
+    <div style="overflow-x:auto" id="lang-filter-table"></div>
+  </div>
+</div>
+
+<!-- ── TAB: SUBMIT ────────────────────────────────────────────────────────── -->
+<div id="tab-submit" class="tab-panel" role="tabpanel" aria-label="Submit">
+  <h2 class="sec-title">Submit Your Model</h2>
+  <p class="sec-sub">Run the official CARE harness and submit your results.</p>
+  <ol class="step-list">
+    <li class="step-item"><div class="step-num">1</div><div class="step-body"><div class="step-title">Install</div><pre class="code-block">$ pip install care-eval</pre></div></li>
+    <li class="step-item"><div class="step-num">2</div><div class="step-body"><div class="step-title">Configure — create model_config.json (schema below)</div></div></li>
+    <li class="step-item"><div class="step-num">3</div><div class="step-body"><div class="step-title">Run</div><pre class="code-block">$ care-eval run --config model_config.json</pre></div></li>
+    <li class="step-item"><div class="step-num">4</div><div class="step-body"><div class="step-title">Evaluate</div><pre class="code-block">$ care-eval metrics --config model_config.json --outputs ./outputs/</pre></div></li>
+    <li class="step-item"><div class="step-num">5</div><div class="step-body"><div class="step-title">Bundle</div><pre class="code-block">$ care-eval bundle  →  generates submission.json</pre></div></li>
+    <li class="step-item"><div class="step-num">6</div><div class="step-body"><div class="step-title">Submit — upload submission.json <span class="badge b-placeholder">[PLACEHOLDER — form URL]</span></div></div></li>
+  </ol>
+  <div class="trust-tiers">
+    <div class="trust-card"><div class="trust-card-medal">🥉</div><div class="trust-card-title">Paper-reported</div><div class="trust-card-desc">Metrics transcribed from paper. Not independently verified.</div></div>
+    <div class="trust-card"><div class="trust-card-medal">🥈</div><div class="trust-card-title">CARE-harness self-evaluated</div><div class="trust-card-desc">Computed using official CARE harness on submitter's hardware. Raw outputs included.</div></div>
+    <div class="trust-card"><div class="trust-card-medal">🥇</div><div class="trust-card-title">Verified by maintainers</div><div class="trust-card-desc">CARE harness re-run on reference A100. All outputs match submitted results.</div></div>
+  </div>
+  <div style="margin-top:1.5rem">
+    <div class="sec-title" style="font-size:1rem;margin-bottom:.75rem">Submission Schema</div>
+    <div class="json-viewer" id="json-viewer"></div>
+  </div>
+</div>
+
+<!-- ── TAB: PAPER FIGURES ───────────────────────────────────────────────── -->
+<div id="tab-figures" class="tab-panel" role="tabpanel" aria-label="Paper Figures">
+  <h2 class="sec-title">Paper Figures</h2>
+  <p class="sec-sub">All figures from the CARE paper with exact captions. Static companion view — click "View interactive" to explore the live data version in its dedicated tab.</p>
+  <div class="headline-banner" style="margin-bottom:1.75rem">
+    <div class="banner-icon"><i data-lucide="book-open" style="width:18px;height:18px;"></i></div>
+    <div>
+      <div class="banner-title">Paper Figure Reference</div>
+      <div class="banner-body">Figures are loaded directly from the paper's export. Interactive counterparts (Charts.js / Plotly) live in their respective analysis tabs. Figures 4 and 7 require full tensor data for full interactivity — static renders shown here.</div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 1: Overview & Motivation ─────────────────────────────── -->
+  <div class="figures-section">
+    <div class="figures-section-title">
+      <span class="sec-num">1</span> Overview &amp; Motivation
+    </div>
+    <!-- Main hero figure: CARE Workflow -->
+    <div class="fig-grid" style="margin-bottom:1.25rem">
+      <div class="fig-card fig-card-full">
+        <img class="fig-card-img" src="figures/CARE_Workflow.png" alt="CARE end-to-end workflow: from model config to multi-metric evaluation and leaderboard submission" loading="lazy">
+        <div class="fig-card-body">
+          <div class="fig-num-row"><span class="fig-num">Figure 1</span><span class="fig-title">CARE Evaluation Workflow — End-to-End Overview</span></div>
+          <p class="fig-caption">The CARE protocol takes a model config, runs generation under controlled NFE, stochasticity, and remasking conditions, applies the seven-point evaluation checklist (NFE accounting, multi-metric reporting, stochasticity sweep, language filtering, none baseline, uncertainty quantification, external-evaluator PPL), and produces a reproducible submission JSON for the leaderboard.</p>
+        </div>
+      </div>
+    </div>
+    <!-- Three equal-size sub-figures -->
+    <div class="fig-grid fig-grid-3">
+      <div class="fig-card">
+        <div class="fig-img-fixed"><img src="figures/fig_problem.png" alt="Problem statement: same nominal steps hide 1×–4× NFE variation" loading="lazy"></div>
+        <div class="fig-card-body">
+          <div class="fig-num-row"><span class="fig-num">Figure 1a</span><span class="fig-title">The Hidden Compute Problem</span></div>
+          <p class="fig-caption">Remasking strategies share the same nominal step count but differ by up to 4× in actual forward passes. Without NFE control, quality improvements may simply reflect more compute.</p>
+        </div>
+      </div>
+      <div class="fig-card">
+        <div class="fig-img-fixed"><img src="figures/fig1_nfe.png" alt="NFE variation across strategies at 256 nominal steps" loading="lazy"></div>
+        <div class="fig-card-body">
+          <div class="fig-num-row"><span class="fig-num">Figure 1b</span><span class="fig-title">NFE Variation at 256 Nominal Steps</span></div>
+          <p class="fig-caption">none=128, random=257, high_entropy=437, running_confidence=513 NFE at 256 nominal steps. The 4× spread is invisible without CARE's NFE accounting.</p>
+          <button class="fig-interactive" onclick="event.stopPropagation();showTab('compute')"><i data-lucide="bar-chart-2" style="width:11px;height:11px"></i>View interactive in Compute Audit</button>
+        </div>
+      </div>
+      <div class="fig-card">
+        <div class="fig-img-fixed"><img src="figures/fig_framework.png" alt="CARE framework comparison with HELM, dLLM, Gen. Frontiers, ReMDM" loading="lazy"></div>
+        <div class="fig-card-body">
+          <div class="fig-num-row"><span class="fig-num">Figure 1c</span><span class="fig-title">Framework Comparison</span></div>
+          <p class="fig-caption">CARE is the only framework controlling NFE, stochasticity, remasking strategy, and their interaction jointly. Prior frameworks address at most two dimensions.</p>
+          <button class="fig-interactive" onclick="event.stopPropagation();showTab('methodology')"><i data-lucide="layout" style="width:11px;height:11px"></i>View comparison table in Methodology</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 2: Pareto & Frontier Analysis ─────────────────────────── -->
+  <div class="figures-section">
+    <div class="figures-section-title">
+      <span class="sec-num">2</span> Pareto &amp; Frontier Analysis
+    </div>
+    <div class="fig-grid">
+      <div class="fig-card">
+        <img class="fig-card-img" src="figures/fig_pareto_llada.png" alt="LLaDA-8B-Base PPL vs MAUVE Pareto frontier across strategies and temperatures" loading="lazy">
+        <div class="fig-card-body">
+          <div class="fig-num-row"><span class="fig-num">Figure 2</span><span class="fig-title">LLaDA-8B-Base PPL–MAUVE Pareto Frontier</span></div>
+          <p class="fig-caption">Filled markers = deterministic (t=0.0); open markers = stochastic (t=0.25). PPL via Llama-3-8B; MAUVE on OpenWebText, English-filtered, 3-seed mean. No single strategy dominates both axes — the Pareto frontier spans multiple strategies depending on budget and metric priority.</p>
+          <button class="fig-interactive" onclick="event.stopPropagation();showTab('pareto')"><i data-lucide="git-branch" style="width:11px;height:11px"></i>View interactive in Pareto Explorer</button>
+        </div>
+      </div>
+      <div class="fig-card">
+        <img class="fig-card-img" src="figures/fig_pareto_dream.png" alt="Dream-7B-Base PPL vs MAUVE Pareto frontier with native entropy strategy" loading="lazy">
+        <div class="fig-card-body">
+          <div class="fig-num-row"><span class="fig-num">Figure 10</span><span class="fig-title">Dream-7B-Base PPL–MAUVE Pareto Frontier</span></div>
+          <p class="fig-caption">Dream-7B-Base with its native entropy strategy and maskgit. The best strategy changes at every budget, confirming that metric and budget dependence holds across independent model families — not just LLaDA. Origin (no remasking) achieves best MAUVE at 256 steps.</p>
+          <button class="fig-interactive" onclick="event.stopPropagation();showTab('deepdive')"><i data-lucide="layers" style="width:11px;height:11px"></i>View model data in Deep Dive</button>
+        </div>
+      </div>
+      <div class="fig-card fig-card-full">
+        <img class="fig-card-img" src="figures/fig_frontier_overlay.png" alt="Frontier overlay: PPL-MAUVE scatter and MAUVE bars by strategy and temperature at 256 steps" loading="lazy">
+        <div class="fig-card-body">
+          <div class="fig-num-row"><span class="fig-num">Figure 5</span><span class="fig-title">Frontier Overlay — 256 Steps, LLaDA-8B-Base</span></div>
+          <p class="fig-caption">Left panel: PPL × MAUVE scatter showing strategy × temperature trade-offs at 256 steps. Right panel: MAUVE bars by strategy × temperature confirming the stochasticity-dominated effect. Temperature (t: 0.0→0.25) drives a larger MAUVE shift than any remasking strategy choice — visible in both panels simultaneously.</p>
+          <button class="fig-interactive" onclick="event.stopPropagation();showTab('pareto')"><i data-lucide="git-branch" style="width:11px;height:11px"></i>View interactive in Pareto Explorer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 3: Stochasticity & Diversity ──────────────────────────── -->
+  <div class="figures-section">
+    <div class="figures-section-title">
+      <span class="sec-num">3</span> Stochasticity &amp; Diversity
+    </div>
+    <div class="fig-grid">
+      <div class="fig-card fig-card-full">
+        <img class="fig-card-img" src="figures/fig2_mauve_nfe.png" alt="MAUVE vs actual NFE across four stochasticity levels for none, random, high_entropy" loading="lazy">
+        <div class="fig-card-body">
+          <div class="fig-num-row"><span class="fig-num">Figure 3</span><span class="fig-title">MAUVE vs Actual NFE Across Stochasticity Levels</span></div>
+          <p class="fig-caption">LLaDA-8B-Base, English-filtered, 3-seed mean. Four panels: t=0.0, 0.1, 0.25, 0.5. At t=0.0, none dominates across all budgets. At t=0.25, high_entropy collapses to MAUVE=0.652 despite using 3.4× more compute than none (437 vs 128 NFE). The x-axis uses actual NFE — not nominal steps.</p>
+          <button class="fig-interactive" onclick="event.stopPropagation();showTab('stochasticity')"><i data-lucide="zap" style="width:11px;height:11px"></i>View interactive in Stochasticity Lab</button>
+        </div>
+      </div>
+      <div class="fig-card">
+        <img class="fig-card-img" src="figures/fig5_interaction.png" alt="Stochasticity interaction: MAUVE and PPL panels for deterministic vs stochastic" loading="lazy">
+        <div class="fig-card-body">
+          <div class="fig-num-row"><span class="fig-num">Figure 6</span><span class="fig-title">Stochasticity Interaction — MAUVE &amp; PPL</span></div>
+          <p class="fig-caption">LLaDA-8B-Base, English-filtered, 3-seed mean. Det = t=0.0; Stoch = t=0.25. MAUVE improves dramatically with stochasticity for none (+0.285 at 128 steps) but high_entropy collapses (−0.151). PPL degrades for all strategies under stochasticity — the two metrics tell opposite stories. Three-way ANOVA: temperature η²=0.908 dominates; Strategy × Temp interaction p=0.002, η²=0.469.</p>
+          <button class="fig-interactive" onclick="event.stopPropagation();showTab('stochasticity')"><i data-lucide="zap" style="width:11px;height:11px"></i>View interactive in Stochasticity Lab</button>
+        </div>
+      </div>
+      <div class="fig-card">
+        <img class="fig-card-img" src="figures/fig4_diversity.png" alt="Self-BLEU and Distinct-3 at 256 steps across three strategies and four temperatures" loading="lazy">
+        <div class="fig-card-body">
+          <div class="fig-num-row"><span class="fig-num">Figure 8</span><span class="fig-title">Diversity at 256 Steps — Self-BLEU &amp; Distinct-3</span></div>
+          <p class="fig-caption">LLaDA-8B-Base, English-filtered, 3-seed mean. Self-BLEU (lower = more pairwise-diverse); Distinct-3 (higher = richer vocabulary). high_entropy achieves the lowest Self-BLEU at all temperatures — yet its Distinct-3 collapses at t≥0.25 (0.770 vs none=0.940). Pairwise diversity and vocabulary richness are orthogonal metrics; reporting one without the other is misleading.</p>
+          <button class="fig-interactive" onclick="event.stopPropagation();showTab('stochasticity')"><i data-lucide="zap" style="width:11px;height:11px"></i>View interactive in Stochasticity Lab</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 4: Token-Level Dynamics ───────────────────────────────── -->
+  <div class="figures-section">
+    <div class="figures-section-title">
+      <span class="sec-num">4</span> Token-Level Dynamics
+    </div>
+    <div class="fig-grid">
+      <div class="fig-card">
+        <img class="fig-card-img" src="figures/fig6_heatmap.png" alt="Token stability heatmap: none vs high_entropy, 128 steps, t=0.25, sample 1" loading="lazy">
+        <div class="fig-card-body">
+          <div class="fig-num-row"><span class="fig-num">Figure 4</span><span class="fig-title">Token Stability Heatmap</span></div>
+          <p class="fig-caption">LLaDA-8B-Base, 128 steps, t=0.25, sample 1. Rows = token positions (128); columns = decoding steps (128). Dark = stable (locked) token; light = subsequently remasked. none: 8,129/16,384 stable cells (49.6%). high_entropy: only 2,522/16,384 (15.4%) — persistent token churn causing quality collapse. Full per-cell tensor available in supplementary code archive (heatmap_data.npz).</p>
+        </div>
+      </div>
+      <div class="fig-card">
+        <img class="fig-card-img" src="figures/fig3_replacement.png" alt="Token replacement rate per step: none stays at 0%, high_entropy activates at step 40" loading="lazy">
+        <div class="fig-card-body">
+          <div class="fig-num-row"><span class="fig-num">Figure 7</span><span class="fig-title">Token Replacement Rate Per Step</span></div>
+          <p class="fig-caption">t=0.25, 128 steps, 10 samples. none replaces 0% of tokens at every step. high_entropy activates remasking around step 40 (mean replacement 4.3% per step; peak 13.7% at step 41; 88 of 128 steps with non-zero replacement). The late activation followed by persistent churn is the causal mechanism behind MAUVE collapse. Full per-step series in supplementary archive (replacement_rate_data.csv).</p>
+        </div>
+      </div>
+      <div class="fig-card fig-card-full">
+        <img class="fig-card-img" src="figures/fig7_polar.png" alt="Polar area charts: strategy profiles across MAUVE, Fluency, Diversity, Vocab, Efficiency for deterministic and stochastic" loading="lazy">
+        <div class="fig-card-body">
+          <div class="fig-num-row"><span class="fig-num">Figure 9</span><span class="fig-title">Polar Area Charts — Deterministic vs Stochastic Strategy Profiles</span></div>
+          <p class="fig-caption">LLaDA-8B-Base, 128 steps, 3-seed mean. All axes normalized to [0,1] (higher = better). Fluency = 1/PPL rescaled; Diversity = 1 − Self-BLEU; Efficiency = 1/NFE rescaled. (a) Deterministic t=0.0: none dominates on Fluency and Efficiency; strategies differ mainly on fluency. (b) Stochastic t=0.25: none gains large MAUVE but loses Fluency; high_entropy's Vocab axis collapses — confirming that no single strategy wins all axes simultaneously, which is the central motivation for multi-metric evaluation.</p>
+          <button class="fig-interactive" onclick="event.stopPropagation();showTab('overview')"><i data-lucide="radio" style="width:11px;height:11px"></i>View radar chart in Overview</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FIGURE LIGHTBOX ───────────────────────────────────────────────────── -->
+<div class="fig-lightbox" id="fig-lightbox" role="dialog" aria-modal="true" aria-label="Figure viewer">
+  <button class="fig-lb-close" onclick="closeLightbox()" aria-label="Close">&times;</button>
+  <div class="fig-lb-wrap">
+    <div class="fig-lb-img-outer" id="lb-img-outer">
+      <img class="fig-lb-img" id="lb-img" src="" alt="">
+    </div>
+    <div class="fig-lb-bar">
+      <div class="fig-lb-caption-wrap">
+        <div class="fig-lb-title" id="lb-title"></div>
+        <div class="fig-lb-caption" id="lb-caption"></div>
+      </div>
+      <div class="fig-lb-zoom-btns">
+        <button class="fig-lb-btn" onclick="lbZoomOut()" title="Zoom out">−</button>
+        <button class="fig-lb-btn wide" onclick="lbZoomReset()" title="Reset zoom" id="lb-zoom-label">1×</button>
+        <button class="fig-lb-btn" onclick="lbZoomIn()" title="Zoom in">+</button>
+      </div>
+    </div>
+    <div class="fig-lb-hint">Scroll to zoom · ESC or click outside to close</div>
+  </div>
+</div>
+
+<!-- ── TOOLTIP ────────────────────────────────────────────────────────────── -->
+<div id="tooltip" role="tooltip" aria-live="polite"></div>
+
+<!-- ── COMPARE BAR ────────────────────────────────────────────────────────── -->
+<div class="compare-bar" id="compare-bar">
+  <span id="compare-count">0 selected</span>
+  <button class="btn btn-primary" style="padding:.35rem .75rem;font-size:.78rem" onclick="openCompareModal()">Compare</button>
+  <button class="btn btn-ghost" style="padding:.35rem .625rem;font-size:.78rem;color:var(--color-bg)" onclick="clearCompare()">Clear</button>
+</div>
+
+<!-- ── MODAL ──────────────────────────────────────────────────────────────── -->
+<div id="modal-overlay" role="dialog" aria-modal="true" aria-label="Compare selected configs" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Compare Configs</div>
+      <button class="btn-icon" onclick="closeModal()" aria-label="Close comparison modal"><i data-lucide="x" style="width:14px;height:14px;"></i></button>
+    </div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────────────────── -->
+<footer style="background:var(--color-surface);border-top:1px solid var(--color-border);padding:1.5rem 1.25rem;text-align:center;font-size:.75rem;color:var(--color-text-faint)">
+  CARE Leaderboard · NeurIPS 2026 Companion · <a href="#" style="color:var(--color-text-faint)">Paper <span class="badge b-placeholder">[PLACEHOLDER]</span></a> · <a href="#" style="color:var(--color-text-faint)">GitHub <span class="badge b-placeholder">[PLACEHOLDER]</span></a> · <a href="#" style="color:var(--color-text-faint)">HF Space <span class="badge b-placeholder">[PLACEHOLDER]</span></a>
+</footer>
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   DATA CONSTANTS  (exact values from paper)
+   ════════════════════════════════════════════════════════════════════════ */
+const STRATEGY_COLORS={none:"#01696f",random:"#d19900",high_entropy:"#a12c7b",low_confidence:"#da7101",running_confidence:"#a13544",conf_entropy:"#006494",agreement:"#7a39bb",origin:"#437a22",entropy:"#01696f",maskgit:"#d19900"};
+
+const NFE_DATA={model:"LLaDA-8B-Base",nominal_steps:256,strategies:[
+  {name:"none",              actual_nfe:128,ratio:1.0},
+  {name:"random",            actual_nfe:257,ratio:2.0},
+  {name:"high_entropy",      actual_nfe:437,ratio:3.4},
+  {name:"low_confidence",    actual_nfe:437,ratio:3.4},
+  {name:"conf_entropy",      actual_nfe:437,ratio:3.4},
+  {name:"agreement",         actual_nfe:437,ratio:3.4},
+  {name:"running_confidence",actual_nfe:513,ratio:4.0}
+]};
+
+const LLADA_DET={model:"LLaDA-8B-Base",data:[
+  {strategy:"none",        steps:64, ppl:9.6, mauve:0.663},
+  {strategy:"none",        steps:128,ppl:7.6, mauve:0.601},
+  {strategy:"none",        steps:256,ppl:7.2, mauve:0.645},
+  {strategy:"random",      steps:64, ppl:29.7,mauve:0.450},
+  {strategy:"random",      steps:128,ppl:25.4,mauve:0.597},
+  {strategy:"random",      steps:256,ppl:28.5,mauve:0.589},
+  {strategy:"high_entropy",steps:64, ppl:17.5,mauve:0.316},
+  {strategy:"high_entropy",steps:128,ppl:16.2,mauve:0.612},
+  {strategy:"high_entropy",steps:256,ppl:18.6,mauve:0.583}
+]};
+
+const DREAM_DATA={model:"Dream-7B-Base",data:[
+  {strategy:"origin", temp:0.0,steps:64, ppl:28.4,mauve:0.889},
+  {strategy:"origin", temp:0.0,steps:128,ppl:26.4,mauve:0.860},
+  {strategy:"origin", temp:0.0,steps:256,ppl:24.0,mauve:0.955},
+  {strategy:"entropy",temp:0.0,steps:64, ppl:43.7,mauve:0.748},
+  {strategy:"entropy",temp:0.0,steps:128,ppl:18.5,mauve:0.977},
+  {strategy:"entropy",temp:0.0,steps:256,ppl:18.5,mauve:0.921},
+  {strategy:"entropy",temp:0.5,steps:64, ppl:22.7,mauve:0.910},
+  {strategy:"entropy",temp:0.5,steps:128,ppl:19.1,mauve:0.958},
+  {strategy:"entropy",temp:0.5,steps:256,ppl:19.3,mauve:0.928},
+  {strategy:"maskgit",temp:0.0,steps:64, ppl:6.7, mauve:0.603},
+  {strategy:"maskgit",temp:0.0,steps:128,ppl:6.4, mauve:0.811},
+  {strategy:"maskgit",temp:0.0,steps:256,ppl:6.3, mauve:0.781},
+  {strategy:"maskgit",temp:0.5,steps:64, ppl:17.1,mauve:0.920},
+  {strategy:"maskgit",temp:0.5,steps:128,ppl:16.2,mauve:0.851},
+  {strategy:"maskgit",temp:0.5,steps:256,ppl:15.5,mauve:0.917}
+]};
+
+const STOCHASTICITY_SWEEP={model:"LLaDA-8B-Base",data:[
+  {strategy:"none",        steps:64, t:0.0, mauve:0.663,mauve_se:null},
+  {strategy:"none",        steps:64, t:0.1, mauve:0.976,mauve_se:null},
+  {strategy:"none",        steps:64, t:0.25,mauve:0.984,mauve_se:null},
+  {strategy:"none",        steps:64, t:0.5, mauve:0.972,mauve_se:null},
+  {strategy:"none",        steps:128,t:0.0, mauve:0.632,mauve_se:0.016},
+  {strategy:"none",        steps:128,t:0.1, mauve:0.966,mauve_se:null},
+  {strategy:"none",        steps:128,t:0.25,mauve:0.952,mauve_se:0.005},
+  {strategy:"none",        steps:128,t:0.5, mauve:0.943,mauve_se:null},
+  {strategy:"none",        steps:256,t:0.0, mauve:0.652,mauve_se:0.017},
+  {strategy:"none",        steps:256,t:0.1, mauve:0.925,mauve_se:null},
+  {strategy:"none",        steps:256,t:0.25,mauve:0.948,mauve_se:0.021},
+  {strategy:"none",        steps:256,t:0.5, mauve:0.970,mauve_se:null},
+  {strategy:"random",      steps:256,t:0.0, mauve:0.589,mauve_se:null},
+  {strategy:"random",      steps:256,t:0.1, mauve:0.800,mauve_se:null},
+  {strategy:"random",      steps:256,t:0.25,mauve:0.883,mauve_se:null},
+  {strategy:"random",      steps:256,t:0.5, mauve:0.980,mauve_se:null},
+  {strategy:"high_entropy",steps:128,t:0.0, mauve:0.561,mauve_se:0.038,collapse:false},
+  {strategy:"high_entropy",steps:128,t:0.1, mauve:0.832,mauve_se:null, collapse:false},
+  {strategy:"high_entropy",steps:128,t:0.25,mauve:0.803,mauve_se:0.050,collapse:false},
+  {strategy:"high_entropy",steps:128,t:0.5, mauve:0.558,mauve_se:null, collapse:true},
+  {strategy:"high_entropy",steps:256,t:0.0, mauve:0.561,mauve_se:0.014,collapse:false},
+  {strategy:"high_entropy",steps:256,t:0.1, mauve:0.820,mauve_se:null, collapse:false},
+  {strategy:"high_entropy",steps:256,t:0.25,mauve:0.652,mauve_se:0.025,collapse:true},
+  {strategy:"high_entropy",steps:256,t:0.5, mauve:0.565,mauve_se:null, collapse:true}
+]};
+
+const MAUVE_GAP={key_finding:{steps:256,t:0.25,gap:0.296,se:0.042,t_stat:7.06,p:0.020},data:[
+  {steps:64, t:0.0, gap:0.347,se:null},
+  {steps:64, t:0.1, gap:0.101,se:null},
+  {steps:64, t:0.25,gap:0.149,se:null},
+  {steps:64, t:0.5, gap:0.080,se:null},
+  {steps:128,t:0.0, gap:0.071,se:0.049},
+  {steps:128,t:0.1, gap:0.134,se:null},
+  {steps:128,t:0.25,gap:0.149,se:0.044},
+  {steps:128,t:0.5, gap:0.385,se:null},
+  {steps:256,t:0.0, gap:0.091,se:0.016},
+  {steps:256,t:0.1, gap:0.105,se:null},
+  {steps:256,t:0.25,gap:0.296,se:0.042},
+  {steps:256,t:0.5, gap:0.405,se:null}
+]};
+
+const ALL_STRATEGIES={model:"LLaDA-8B-Base",steps:128,t:0.0,data:[
+  {strategy:"none",              ppl:7.3,mauve:0.515,self_bleu:0.070,distinct3:0.667,nfe:128},
+  {strategy:"random",            ppl:7.1,mauve:0.441,self_bleu:0.060,distinct3:0.640,nfe:129},
+  {strategy:"high_entropy",      ppl:6.6,mauve:0.552,self_bleu:0.045,distinct3:0.641,nfe:219},
+  {strategy:"low_confidence",    ppl:6.8,mauve:0.440,self_bleu:0.066,distinct3:0.653,nfe:219},
+  {strategy:"running_confidence",ppl:6.6,mauve:0.337,self_bleu:0.048,distinct3:0.621,nfe:257},
+  {strategy:"conf_entropy",      ppl:6.9,mauve:0.471,self_bleu:0.050,distinct3:0.654,nfe:219},
+  {strategy:"agreement",         ppl:6.7,mauve:0.414,self_bleu:0.064,distinct3:0.616,nfe:219}
+]};
+
+const LLADA_MOE={model:"LLaDA-MoE-7B-A1B",data:[
+  {strategy:"none",        steps:128,t:0.0,ppl:6.2, mauve:0.547},
+  {strategy:"none",        steps:128,t:0.1,ppl:15.2,mauve:0.934},
+  {strategy:"none",        steps:256,t:0.0,ppl:5.9, mauve:0.447},
+  {strategy:"none",        steps:256,t:0.1,ppl:16.7,mauve:0.954},
+  {strategy:"high_entropy",steps:128,t:0.0,ppl:21.8,mauve:0.333},
+  {strategy:"high_entropy",steps:128,t:0.1,ppl:35.8,mauve:0.903},
+  {strategy:"high_entropy",steps:256,t:0.0,ppl:21.2,mauve:0.424},
+  {strategy:"high_entropy",steps:256,t:0.1,ppl:34.7,mauve:0.793}
+]};
+
+const SELFBLEU_VS_TEMP={temps:[0.0,0.1,0.25,0.5],none:[0.013,0.022,0.045,0.067],random:[0.011,0.020,0.035,0.048],high_entropy:[0.008,0.012,0.018,0.029]};
+const DISTINCT3_VS_TEMP={temps:[0.0,0.1,0.25,0.5],none:[0.802,0.900,0.940,0.949],random:[0.795,0.880,0.920,0.937],high_entropy:[0.825,0.850,0.770,0.752]};
+
+const TOOLTIPS={
+  "NFE":"Neural Function Evaluations — the actual number of forward passes. Same nominal 'steps' can require 1× to 4× different NFE.",
+  "MAUVE":"Measures how close generated text is to real human text distribution. Higher = better. Computed via embedding-space KL divergence.",
+  "PPL":"Generative Perplexity — how fluent the generated text is. Lower = more fluent. Warning: PPL and MAUVE rankings often disagree.",
+  "Self-BLEU":"Average BLEU between pairs of generated samples. Lower = more diverse.",
+  "Distinct-3":"Fraction of unique 3-grams across all samples. Higher = richer vocabulary.",
+  "unmask_temp":"Stochasticity level for unmasking order. 0.0 = deterministic; 0.5 = high stochasticity.",
+  "remasking":"Re-masks already-placed tokens and re-generates them. Intended to improve quality but can cancel diversity.",
+  "none":"No remasking baseline. Once a token is placed, it stays. Most compute-efficient.",
+  "high_entropy":"Remasks highest-entropy tokens. Uses 3.4× more NFE. Collapses MAUVE at high steps + stochastic unmasking.",
+  "running_confidence":"Rolling confidence average. Most compute-expensive: 4.0× NFE ratio.",
+  "Pareto front":"Configs where no single config dominates all metrics simultaneously.",
+  "SE":"Standard Error over seeds. Differences smaller than 2× SE are unreliable.",
+  "language filter":"ASCII ≥ 0.85 and CJK ≤ 0.02. Prevents multilingual output from contaminating MAUVE.",
+  "CARE":"Compute-Aware Remasking Evaluation. Seven practices that prevent contradictory leaderboard conclusions."
+};
+
+/* ── PPL_TEMPS — Table 16: PPL across temperatures ───────────────────── */
+const PPL_TEMPS={model:"LLaDA-8B-Base",evaluator:"Llama-3-8B",data:[
+  {strategy:"none",         steps:64,  t0:9.6, t1:17.6,t25:23.9,t5:33.0},
+  {strategy:"none",         steps:128, t0:7.6, t1:16.2,t25:23.1,t5:29.0},
+  {strategy:"none",         steps:256, t0:7.2, t1:15.8,t25:23.4,t5:30.4},
+  {strategy:"high_entropy", steps:64,  t0:17.5,t1:28.3,t25:26.9,t5:26.2},
+  {strategy:"high_entropy", steps:128, t0:16.2,t1:28.3,t25:25.6,t5:22.5},
+  {strategy:"high_entropy", steps:256, t0:18.6,t1:25.3,t25:20.6,t5:19.6}
+]};
+
+/* ── REMASK_ABLATION — Table 9: Remask fraction ablation ─────────────── */
+const REMASK_ABLATION={model:"LLaDA-8B-Base",strategy:"high_entropy",steps:256,t:0.25,note:"single seed",data:[
+  {fraction:0.05, label:"5%",          mauve:0.896,ppl:23.5,distinct3:0.932,remasks:289},
+  {fraction:0.15, label:"15% (default)",mauve:0.602,ppl:20.6,distinct3:0.834,remasks:428},
+  {fraction:0.30, label:"30%",          mauve:0.482,ppl:27.1,distinct3:0.850,remasks:531}
+]};
+
+/* ── THREE_SEED — Table 12: Three-seed MAUVE reproducibility ─────────── */
+const THREE_SEED={model:"LLaDA-8B-Base",data:[
+  {config:"none@128", t:0.0,  s1:0.601,s2:0.645,s3:0.651,mean:0.632,se:0.016},
+  {config:"none@256", t:0.0,  s1:0.645,s2:0.684,s3:0.628,mean:0.652,se:0.017},
+  {config:"h_ent@128",t:0.0,  s1:0.612,s2:0.488,s3:0.584,mean:0.561,se:0.038},
+  {config:"h_ent@256",t:0.0,  s1:0.583,s2:0.566,s3:0.535,mean:0.561,se:0.014},
+  {config:"none@128", t:0.25, s1:0.960,s2:0.942,s3:0.954,mean:0.952,se:0.005},
+  {config:"none@256", t:0.25, s1:0.979,s2:0.958,s3:0.907,mean:0.948,se:0.021},
+  {config:"h_ent@128",t:0.25, s1:0.878,s2:0.709,s3:0.821,mean:0.803,se:0.050},
+  {config:"h_ent@256",t:0.25, s1:0.602,s2:0.682,s3:0.671,mean:0.652,se:0.025}
+]};
+
+/* ── GSM8K — Table 17: Downstream GSM8K accuracy (%) ────────────────── */
+const GSM8K={model:"LLaDA-8B-Instruct",task:"GSM8K",shots:4,n:200,data:[
+  {strategy:"none",         steps:128,t0:61.5,t1:64.0},
+  {strategy:"none",         steps:256,t0:62.0,t1:60.5},
+  {strategy:"high_entropy", steps:128,t0:61.0,t1:55.5},
+  {strategy:"high_entropy", steps:256,t0:56.0,t1:62.5}
+]};
+
+/* ── LANG_FILTER — Table 18: OWT acceptance rates (%) ───────────────── */
+const LANG_FILTER={corpus:"OWT",note:"filter: ASCII≥0.85, CJK≤0.02",data:[
+  {strategy:"none",         steps:"64/128/256",t0:"99.6",t1:"98.0–98.4",t25:"96.8–97.2",t5:"96.0–97.6"},
+  {strategy:"random",       steps:"64/128/256",t0:"99.6",t1:"95.6–98.0",t25:"94.8–97.6",t5:"95.6–98.4"},
+  {strategy:"high_entropy", steps:"64/128/256",t0:"99.6",t1:"94.0–96.4",t25:"94.0–94.4",t5:"90.0–93.2"}
+]};
+
+/* ── HUMANEVAL — Table 10: HumanEval pass@1 (%), LLaDA-8B-Base ──────── */
+const HUMANEVAL={model:"LLaDA-8B-Base",task:"HumanEval",n:100,note:"3-seed mean±SE; compute-matched block reverses nominal-step ranking",data:[
+  {block:"Nominal-step (unequal NFE)",strategy:"none",            nominal_steps:256,actual_nfe:128, t0:"28.3±0.3",t1:"24.7±0.3"},
+  {block:"Nominal-step (unequal NFE)",strategy:"high_entropy",   nominal_steps:256,actual_nfe:437, t0:"31.7±0.3",t1:"28.0±0.6"},
+  {block:"Nominal-step (unequal NFE)",strategy:"low_confidence", nominal_steps:256,actual_nfe:437, t0:"30.3±0.3",t1:"26.7±0.3"},
+  {block:"Compute-matched (NFE=437)", strategy:"none*",          nominal_steps:"adj.",actual_nfe:437,t0:"32.0±0.6",t1:"28.3±0.3"},
+  {block:"Compute-matched (NFE=437)", strategy:"high_entropy",   nominal_steps:256,actual_nfe:437, t0:"31.7±0.3",t1:"28.0±0.6"},
+  {block:"Compute-matched (NFE=437)", strategy:"low_confidence", nominal_steps:256,actual_nfe:437, t0:"30.3±0.3",t1:"26.7±0.3"}
+]};
+
+/* ── ANOVA — Table 8: Three-way ANOVA on MAUVE (LLaDA-8B-Base, 3-seed) ── */
+const ANOVA_DATA=[
+  {factor:"Temperature",             F:157.16,p:"<0.001",eta2:0.908},
+  {factor:"Strategy",                F: 64.71,p:"<0.001",eta2:0.802},
+  {factor:"Steps",                   F:  3.19,p:"0.093", eta2:0.166},
+  {factor:"Strategy × Temp.",        F: 14.10,p:"0.002", eta2:0.469,key:true},
+  {factor:"Strategy × Steps",        F:  4.89,p:"0.042", eta2:0.234},
+  {factor:"Temperature × Steps",     F:  5.37,p:"0.034", eta2:0.251},
+  {factor:"Three-way",               F:  2.83,p:"0.112", eta2:0.150}
+];
+
+/* ── COMPUTE_MATCHED — Table 4: NFE-matched quality ──────────────────── */
+const COMPUTE_MATCHED={model:"LLaDA-8B-Base",t:0.0,note:"English-filtered, 3-seed mean",data:[
+  {nfe:128,strategy:"none",         ppl:7.6, mauve:0.601,delta:null},
+  {nfe:128,strategy:"random",       ppl:25.9,mauve:0.574,delta:-0.027},
+  {nfe:128,strategy:"high_entropy", ppl:16.8,mauve:0.589,delta:-0.012},
+  {nfe:256,strategy:"none",         ppl:7.2, mauve:0.645,delta:null},
+  {nfe:256,strategy:"random",       ppl:27.6,mauve:0.598,delta:-0.047},
+  {nfe:256,strategy:"high_entropy", ppl:18.9,mauve:0.583,delta:-0.062},
+  {nfe:512,strategy:"none",         ppl:7.0, mauve:0.671,delta:null},
+  {nfe:512,strategy:"random",       ppl:29.2,mauve:0.612,delta:-0.059},
+  {nfe:512,strategy:"high_entropy", ppl:20.4,mauve:0.557,delta:-0.114}
+]};
+
+/* ── CARE_LEADERBOARD — Tables 11+20: Cross-model summary ────────────── */
+/* fConfirmed=false → foundation model pending verification, shown with ? marker */
+const CARE_LEADERBOARD={note:"256 nominal steps, English-filtered, OWT prefix=64, gen=128, t=0.25",data:[
+  /* Tier 1 */
+  {tier:1,type:"dLLM",foundation:"LLaMA-3-8B",     fConfirmed:true,  model:"LLaDA-8B-Base",    scale:"8B",   ppl_none:23.4,mauve_none:0.948,ppl_hent:20.6,mauve_hent:0.652,gap:0.296,he:32.0,note:""},
+  {tier:1,type:"dLLM",foundation:"LLaMA-3-8B",     fConfirmed:true,  model:"LLaDA-8B-Instruct",scale:"8B",   ppl_none:22.7,mauve_none:0.928,ppl_hent:20.1,mauve_hent:0.641,gap:0.287,he:36.5,note:""},
+  {tier:1,type:"dLLM",foundation:"LLaMA-3.1-8B",   fConfirmed:false, model:"LLaDA-1.5",        scale:"8B",   ppl_none:21.9,mauve_none:0.939,ppl_hent:19.4,mauve_hent:0.681,gap:0.258,he:38.0,note:""},
+  {tier:1,type:"dLLM",foundation:"Custom MoE",      fConfirmed:false, model:"LLaDA-MoE-A1B",   scale:"~1B",  ppl_none:null,mauve_none:0.954,ppl_hent:null,mauve_hent:0.793,gap:0.161,he:18.5,note:"* t=0.1"},
+  {tier:1,type:"dLLM",foundation:"Qwen2.5-7B",      fConfirmed:true,  model:"Dream-7B-Base",    scale:"7B",   ppl_none:null,mauve_none:0.955,ppl_hent:null,mauve_hent:0.921,gap:0.034,he:27.5,note:"† entropy strategy"},
+  {tier:1,type:"dLLM",foundation:"Qwen2.5-7B",      fConfirmed:true,  model:"Dream-7B-Instruct",scale:"7B",   ppl_none:23.8,mauve_none:0.927,ppl_hent:21.8,mauve_hent:0.861,gap:0.066,he:31.0,note:""},
+  /* Tier 2 */
+  {tier:2,type:"dLLM",foundation:"Qwen2.5-0.5B",   fConfirmed:false, model:"Tiny-A2D (Qwen-0.5B)",scale:"0.5B",ppl_none:38.5,mauve_none:0.662,ppl_hent:34.2,mauve_hent:0.448,gap:0.214,he:4.5, note:""},
+  {tier:2,type:"dLLM",foundation:"Qwen2.5-0.6B",   fConfirmed:false, model:"Tiny-A2D (Qwen-0.6B)",scale:"0.6B",ppl_none:36.8,mauve_none:0.691,ppl_hent:32.7,mauve_hent:0.476,gap:0.215,he:5.8, note:""},
+  {tier:2,type:"dLLM",foundation:"LLaMA-2-7B",      fConfirmed:true,  model:"DiffuLLaMA-7B",    scale:"7B",   ppl_none:26.4,mauve_none:0.872,ppl_hent:22.6,mauve_hent:0.617,gap:0.255,he:21.0,note:""},
+  {tier:2,type:"dLLM",foundation:"Qwen2.5-Coder-7B",fConfirmed:true,  model:"Dream-Coder-7B",   scale:"7B",   ppl_none:27.1,mauve_none:0.886,ppl_hent:23.4,mauve_hent:0.742,gap:0.144,he:34.0,note:""},
+  {tier:2,type:"dLLM",foundation:"Qwen2.5-7B",      fConfirmed:false, model:"SM-Dream-7B",      scale:"7B",   ppl_none:24.7,mauve_none:0.913,ppl_hent:21.6,mauve_hent:0.823,gap:0.090,he:29.5,note:"SM=Soft-Masked"},
+  {tier:2,type:"dLLM",foundation:"BERT-base",        fConfirmed:false, model:"BERT-Chat",        scale:"150M", ppl_none:45.5,mauve_none:0.418,ppl_hent:41.2,mauve_hent:0.283,gap:0.135,he:0.8, note:""},
+  /* AR Reference */
+  {tier:0,type:"AR",  foundation:"GPT-2-XL",         fConfirmed:true,  model:"GPT-2-XL (p=0.95)",scale:"1.5B",ppl_none:14.1,mauve_none:0.742,ppl_hent:null,mauve_hent:null,gap:null,he:null,note:"AR baseline"}
+]};
+
+/* ════════════════════════════════════════════════════════════════════════
+   HELPERS
+   ════════════════════════════════════════════════════════════════════════ */
+function computePareto(pts){
+  // pts: [{ppl,mauve,...}], want lower PPL & higher MAUVE
+  const sorted=[...pts].sort((a,b)=>a.ppl-b.ppl);
+  const pareto=[];let bestM=-Infinity;
+  for(const p of sorted){if(p.mauve>bestM){bestM=p.mauve;pareto.push(p);}}
+  return pareto;
+}
+
+function normalizeForRadar(row){
+  return {
+    mauve:   row.mauve||0,
+    fluency: Math.max(0,1-(((row.ppl||20)-5)/(50-5))),
+    diversity:Math.max(0,1-(row.self_bleu||0.05)),
+    vocab:   row.distinct3||0.65,
+    efficiency:Math.max(0,1-(((row.actual_nfe||200)-64)/(550-64))),
+    stability: row.mauve_se!=null?Math.max(0,1-(row.mauve_se/0.06)):0.7
+  };
+}
+
+function getNFEForStrategy(strategy,steps){
+  // "none" is capped at 128 NFE regardless of nominal steps (Table 3: none@256=128; Table 15: none@128=128)
+  if(strategy==='none')return Math.min(steps,128);
+  const nfeMap={random:1.004,high_entropy:1.707,low_confidence:1.707,running_confidence:2.004,conf_entropy:1.707,agreement:1.707,entropy:1.0,origin:1.0,maskgit:1.0};
+  return Math.round(steps*(nfeMap[strategy]||1));
+}
+
+function buildTableRows(){
+  const rows=[];
+  // LLaDA-8B stochasticity sweep
+  for(const d of STOCHASTICITY_SWEEP.data){
+    const nfe=getNFEForStrategy(d.strategy,d.steps);
+    const nfeRatio=(nfe/128).toFixed(1);
+    const as7=ALL_STRATEGIES.data.find(r=>r.strategy===d.strategy&&r.nfe);
+    rows.push({
+      model:"LLaDA-8B-Base",strategy:d.strategy,steps:d.steps,temp:d.t,
+      mauve:d.mauve,mauve_se:d.mauve_se,
+      ppl:d.t===0?(LLADA_DET.data.find(r=>r.strategy===d.strategy&&r.steps===d.steps)||{ppl:null}).ppl:null,
+      self_bleu:d.t===0&&as7?as7.self_bleu:null,
+      distinct3:d.t===0&&as7?as7.distinct3:null,
+      actual_nfe:nfe,nfe_ratio:parseFloat(nfeRatio),
+      trust:d.mauve_se!=null?"CARE":"Paper",
+      pareto:false,collapse:d.collapse||false,
+      id:rows.length
+    });
+  }
+  // LLaDA-MoE
+  for(const d of LLADA_MOE.data){
+    const nfe=getNFEForStrategy(d.strategy,d.steps);
+    rows.push({model:"LLaDA-MoE-7B-A1B",strategy:d.strategy,steps:d.steps,temp:d.t,
+      mauve:d.mauve,mauve_se:null,ppl:d.ppl,self_bleu:null,distinct3:null,
+      actual_nfe:nfe,nfe_ratio:parseFloat((nfe/128).toFixed(1)),
+      trust:"Paper",pareto:false,collapse:false,id:rows.length});
+  }
+  // Dream
+  for(const d of DREAM_DATA.data){
+    const nfe=getNFEForStrategy(d.strategy,d.steps);
+    rows.push({model:"Dream-7B-Base",strategy:d.strategy,steps:d.steps,temp:d.temp||d.t||0,
+      mauve:d.mauve,mauve_se:null,ppl:d.ppl,self_bleu:null,distinct3:null,
+      actual_nfe:nfe,nfe_ratio:parseFloat((nfe/128).toFixed(1)),
+      trust:"Paper",pareto:false,collapse:false,id:rows.length});
+  }
+  // Mark Pareto
+  const paretoSet=computePareto(rows.filter(r=>r.ppl!=null&&r.mauve!=null));
+  for(const p of paretoSet){const r=rows.find(x=>x.mauve===p.mauve&&x.ppl===p.ppl);if(r)r.pareto=true;}
+  return rows;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   THEME
+   ════════════════════════════════════════════════════════════════════════ */
+function toggleTheme(){
+  const html=document.documentElement;
+  const dark=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme',dark?'light':'dark');
+  document.getElementById('theme-icon').setAttribute('data-lucide',dark?'sun':'moon');
+  lucide.createIcons();
+  updateAllChartThemes();
+}
+function getChartColors(){
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  return{grid:dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.07)',tick:dark?'#525050':'#b0afa9',label:dark?'#7a7874':'#6b6a66',text:dark?'#d0cfcc':'#1a1916'};
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   TABS
+   ════════════════════════════════════════════════════════════════════════ */
+const TAB_IDS=['overview','pareto','stochasticity','compute','deepdive','methodology','figures','submit'];
+let activeTab='overview';
+function showTab(id){
+  if(activeTab===id)return;
+  document.getElementById('tab-'+activeTab).classList.remove('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>{
+    t.classList.toggle('active',TAB_IDS[i]===id);
+    t.setAttribute('aria-selected',TAB_IDS[i]===id);
+  });
+  activeTab=id;
+  const prefersReduced=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(!prefersReduced&&typeof anime!=='undefined'){
+    anime({targets:'#tab-'+id,opacity:[0,1],translateY:[10,0],duration:280,easing:'easeOutCubic'});
+  }
+  if(id==='pareto'&&!paretoRendered)renderPareto();
+  if(id==='stochasticity'&&!stoRendered)renderStochasticity();
+  if(id==='compute'&&!computeRendered)renderCompute();
+  if(id==='methodology'&&!methoRendered)renderMethodology();
+  if(id==='figures')lucide.createIcons({attrs:{class:'lucide'}});
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   TOOLTIP SYSTEM
+   ════════════════════════════════════════════════════════════════════════ */
+const tip=document.getElementById('tooltip');
+document.addEventListener('mouseover',e=>{
+  const anchor=e.target.closest('[data-tooltip]');
+  if(!anchor)return;
+  const text=TOOLTIPS[anchor.dataset.tooltip];
+  if(!text)return;
+  tip.textContent=text;tip.style.opacity='1';
+});
+document.addEventListener('mousemove',e=>{
+  tip.style.left=Math.min(e.clientX+14,window.innerWidth-270)+'px';
+  tip.style.top=Math.max(e.clientY-8,8)+'px';
+});
+document.addEventListener('mouseout',e=>{
+  if(!e.target.closest('[data-tooltip]'))return;
+  tip.style.opacity='0';
+});
+// keyboard a11y
+document.addEventListener('focusin',e=>{
+  const anchor=e.target.closest('[data-tooltip]');
+  if(!anchor)return;
+  const text=TOOLTIPS[anchor.dataset.tooltip];
+  if(text){tip.textContent=text;tip.style.opacity='1';}
+});
+document.addEventListener('focusout',()=>{tip.style.opacity='0';});
+
+/* ════════════════════════════════════════════════════════════════════════
+   TABULATOR TABLE
+   ════════════════════════════════════════════════════════════════════════ */
+let table,radarChart,selectedRows=[];
+const ALL_ROWS=buildTableRows();
+
+function strategyDot(s){return`<span style="display:inline-flex;align-items:center;gap:.35rem"><span style="width:8px;height:8px;border-radius:50%;background:${STRATEGY_COLORS[s]||'#999'};display:inline-block;flex-shrink:0"></span>${s}</span>`;}
+
+function initTable(){
+  const initialData=filterRows();
+  table=new Tabulator('#leaderboard-table',{
+    data:initialData,
+    layout:'fitDataStretch',
+    responsiveLayout:'hide',
+    selectableRows:4,
+    rowFormatter(row){
+      const d=row.getData();
+      if(d.collapse)row.getElement().classList.add('row-collapse');
+      if(d.pareto)row.getElement().classList.add('row-pareto');
+    },
+    columns:[
+      {title:'#',field:'rank',width:44,formatter:c=>{const v=c.getValue();if(v===1)return`<span class="tab-rank-badge tab-rank-1">1</span>`;if(v===2)return`<span class="tab-rank-badge tab-rank-2">2</span>`;if(v===3)return`<span class="tab-rank-badge tab-rank-3">3</span>`;return`<span class="tab-rank-n">${v}</span>`;},sorter:'number'},
+      {title:'Strategy',field:'strategy',formatter:c=>strategyDot(c.getValue()),sorter:'string',headerTooltip:'Remasking strategy. Hover for description.'},
+      {title:'Model',field:'model',sorter:'string',width:140,headerTooltip:'Base model used for evaluation.'},
+      {title:'Steps',field:'steps',sorter:'number',width:66,headerTooltip:'Nominal denoising steps (not actual compute — see NFE column).'},
+      {title:'t',field:'temp',sorter:'number',width:52,headerTooltip:'unmask_temp stochasticity level. 0.0 = deterministic.',formatter:c=>c.getValue().toFixed(2)},
+      {title:'MAUVE ↑',field:'mauve',sorter:'number',formatter:c=>{
+        const v=c.getValue();const d=c.getData();
+        const se=d.mauve_se!=null?`<span style="font-size:.7rem;color:var(--color-text-faint)"> ±${d.mauve_se.toFixed(3)}</span>`:'';
+        return`<span class="${v>=0.95?'cell-best-mauve':''}">${v.toFixed(3)}${se}</span>`;
+      },headerTooltip:'Distributional match to human text. Higher = better. Main quality metric.'},
+      {title:'PPL ↓',field:'ppl',sorter:'number',formatter:c=>{
+        const v=c.getValue();if(v==null)return'<span style="color:var(--color-text-faint)">—</span>';
+        return`<span class="${v<=7?'cell-best-ppl':''}">${v.toFixed(1)}</span>`;
+      },headerTooltip:'Generative perplexity. Lower = more fluent. PPL and MAUVE rankings often disagree.'},
+      {title:'Self-BLEU ↓',field:'self_bleu',sorter:'number',formatter:c=>c.getValue()!=null?c.getValue().toFixed(3):'<span style="color:var(--color-text-faint)">—</span>',headerTooltip:'Pairwise similarity between samples. Lower = more diverse.'},
+      {title:'Distinct-3 ↑',field:'distinct3',sorter:'number',formatter:c=>c.getValue()!=null?c.getValue().toFixed(3):'<span style="color:var(--color-text-faint)">—</span>',headerTooltip:'Vocabulary richness. Higher = richer output.'},
+      {title:'Actual NFE',field:'actual_nfe',sorter:'number',width:90,headerTooltip:'True forward passes used. Critical: same steps can mean 1×–4× different compute.',formatter:c=>`<span style="font-family:var(--font-mono)">${c.getValue()}</span>`},
+      {title:'NFE ×',field:'nfe_ratio',sorter:'number',width:64,formatter:c=>{
+        const v=c.getValue();
+        return`<span style="color:${v>=3.4?'var(--color-error)':v>=2?'var(--color-warning)':'var(--color-success)'};font-family:var(--font-mono);font-size:.8rem">${v.toFixed(1)}×</span>`;
+      },headerTooltip:'Compute ratio vs no-remasking baseline.'},
+      {title:'Trust',field:'trust',sorter:'string',formatter:c=>c.getValue()==='CARE'?`<span class="badge b-verified">CARE</span>`:`<span class="badge b-paper">Paper</span>`,headerTooltip:'CARE-verified or Paper-reported result.'},
+      {title:'',field:'pareto',sorter:'boolean',width:50,formatter:c=>{
+        const d=c.getData();
+        if(d.collapse)return`<span class="badge b-collapse">⚠</span>`;
+        if(d.pareto)return`<span class="badge b-pareto">★</span>`;
+        return'';
+      },headerTooltip:'★ = Pareto optimal; ⚠ = collapse detected.'},
+      {title:'☐',field:'id',width:36,headerSort:false,formatter:c=>`<input type="checkbox" class="row-check" data-id="${c.getValue()}" style="accent-color:var(--color-primary)">`,cellClick:(e,c)=>toggleRowSelect(c.getData())}
+    ],
+    initialSort:[{column:'mauve',dir:'desc'}]
+  });
+  addRankColumn();
+  // row hover → radar
+  table.on('rowMouseEnter',(_,row)=>updateRadar([row.getData()]));
+  table.on('rowSelectionChanged',rows=>{
+    selectedRows=rows;
+    updateCompareBar();
+  });
+}
+
+function addRankColumn(){
+  if(!table)return;
+  const data=table.getData();
+  data.forEach((r,i)=>{r.rank=i+1;});
+  table.updateData(data);
+}
+
+function filterRows(){
+  const models=[...document.querySelectorAll('.filter-model:checked')].map(x=>x.value);
+  const stepsEl=document.querySelector('input[name="filter-steps"]:checked');
+  const steps=stepsEl?stepsEl.value:'all';
+  const temps=[...document.querySelectorAll('.filter-temp:checked')].map(x=>parseFloat(x.value));
+  const trusts=[...document.querySelectorAll('.filter-trust:checked')].map(x=>x.value);
+  return ALL_ROWS.filter(r=>
+    models.includes(r.model)&&
+    (steps==='all'||r.steps===parseInt(steps))&&
+    temps.includes(r.temp)&&
+    trusts.includes(r.trust)
+  );
+}
+
+function applyFilters(){
+  if(!table)return;
+  const data=filterRows();
+  table.replaceData(data);
+  addRankColumn();
+  updateFilterSummary();
+}
+
+function applySort(){
+  if(!table)return;
+  const s=document.getElementById('sort-select').value;
+  const dir=['ppl','self_bleu'].includes(s)?'asc':'desc';
+  table.setSort(s,dir);
+  addRankColumn();
+}
+
+function updateFilterSummary(){
+  const stepsEl=document.querySelector('input[name="filter-steps"]:checked');
+  const steps=stepsEl?stepsEl.value:'all';
+  const temps=[...document.querySelectorAll('.filter-temp:checked')].map(x=>x.value).join(', ');
+  const models=[...document.querySelectorAll('.filter-model:checked')].length;
+  document.getElementById('filter-summary').textContent=`${steps} steps | t=${temps||'none'} | ${models} model${models!==1?'s':''}`;
+}
+
+// Wire filters
+document.querySelectorAll('.filter-model,.filter-temp,.filter-trust').forEach(el=>el.addEventListener('change',applyFilters));
+document.querySelectorAll('input[name="filter-steps"]').forEach(el=>el.addEventListener('change',applyFilters));
+
+/* ════════════════════════════════════════════════════════════════════════
+   RADAR CHART
+   ════════════════════════════════════════════════════════════════════════ */
+const RADAR_AXES=['MAUVE (dist.)','Fluency (1/PPL)','Diversity (1−SBL)','Vocab (Distinct-3)','Efficiency (1/NFE)','Stability (1−SE)'];
+const RADAR_KEYS=['mauve','fluency','diversity','vocab','efficiency','stability'];
+
+function buildRadar(){
+  const ctx=document.getElementById('radarChart').getContext('2d');
+  const c=getChartColors();
+  // Default: none@128 t=0 vs high_entropy@128 t=0
+  const r1=ALL_ROWS.find(r=>r.strategy==='none'&&r.steps===128&&r.temp===0&&r.model==='LLaDA-8B-Base');
+  const r2=ALL_ROWS.find(r=>r.strategy==='high_entropy'&&r.steps===128&&r.temp===0&&r.model==='LLaDA-8B-Base');
+  const d1=r1?normalizeForRadar(r1):{mauve:.6,fluency:.9,diversity:.93,vocab:.667,efficiency:.87,stability:.73};
+  const d2=r2?normalizeForRadar(r2):{mauve:.56,fluency:.75,diversity:.96,vocab:.641,efficiency:.68,stability:.37};
+  radarChart=new Chart(ctx,{
+    type:'radar',
+    data:{labels:RADAR_AXES,datasets:[
+      {label:'none@128 t=0',data:Object.values(d1),borderColor:'#01696f',backgroundColor:'rgba(1,105,111,.12)',borderWidth:2,pointBackgroundColor:'#01696f',pointRadius:4},
+      {label:'high_entropy@128 t=0',data:Object.values(d2),borderColor:'#a12c7b',backgroundColor:'rgba(161,44,123,.10)',borderWidth:2,pointBackgroundColor:'#a12c7b',pointRadius:4}
+    ]},
+    options:{responsive:true,animation:{duration:400},plugins:{legend:{display:false}},
+      scales:{r:{min:0,max:1,ticks:{stepSize:.25,color:c.tick,backdropColor:'transparent',font:{size:9}},grid:{color:c.grid},angleLines:{color:c.grid},pointLabels:{color:c.label,font:{size:10}}}}}
+  });
+  buildRadarLegend([{label:'none@128 t=0',color:'#01696f'},{label:'high_entropy@128 t=0',color:'#a12c7b'}]);
+}
+
+function updateRadar(rows){
+  if(!radarChart||!rows.length)return;
+  const colors=['#01696f','#a12c7b','#d19900','#da7101'];
+  const datasets=rows.slice(0,4).map((r,i)=>{
+    const d=normalizeForRadar(r);
+    return{label:`${r.strategy}@${r.steps} t=${r.temp}`,data:Object.values(d),
+      borderColor:STRATEGY_COLORS[r.strategy]||colors[i],backgroundColor:`${STRATEGY_COLORS[r.strategy]||colors[i]}20`,
+      borderWidth:2,pointBackgroundColor:STRATEGY_COLORS[r.strategy]||colors[i],pointRadius:4};
+  });
+  radarChart.data.datasets=datasets;
+  radarChart.update();
+  buildRadarLegend(datasets.map(d=>({label:d.label,color:d.borderColor})));
+}
+
+function buildRadarLegend(items){
+  const el=document.getElementById('radar-legend');
+  if(!el)return;
+  el.innerHTML=items.map(it=>`<div class="legend-item"><div class="legend-dot" style="background:${it.color}"></div>${it.label}</div>`).join('');
+}
+
+function updateAllChartThemes(){
+  const c=getChartColors();
+  Chart.instances&&Object.values(Chart.instances).forEach(ch=>{
+    if(ch.config.type==='radar'){
+      ch.options.scales.r.ticks.color=c.tick;
+      ch.options.scales.r.grid.color=c.grid;
+      ch.options.scales.r.angleLines.color=c.grid;
+      ch.options.scales.r.pointLabels.color=c.label;
+    }else{
+      if(ch.options.scales?.x){ch.options.scales.x.ticks.color=c.tick;ch.options.scales.x.grid.color=c.grid;}
+      if(ch.options.scales?.y){ch.options.scales.y.ticks.color=c.tick;ch.options.scales.y.grid.color=c.grid;}
+    }
+    ch.update();
+  });
+  if(paretoRendered)renderPareto();
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   PARETO EXPLORER (Plotly)
+   ════════════════════════════════════════════════════════════════════════ */
+let paretoRendered=false;
+function renderPareto(){
+  paretoRendered=true;
+  const showPareto=document.getElementById('show-pareto').checked;
+  const showStochastic=document.getElementById('show-stochastic').checked;
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  const paper=dark?'#141310':'#f8f7f4';const fontColor=dark?'#d0cfcc':'#1a1916';
+  const gridColor=dark?'rgba(255,255,255,.07)':'rgba(0,0,0,.07)';
+
+  // Build LLaDA traces
+  function buildTraces(data,model){
+    const strategies=[...new Set(data.map(d=>d.strategy))];
+    const traces=[];
+    for(const s of strategies){
+      const pts=data.filter(d=>d.strategy===s&&d.ppl!=null);
+      const det=pts.filter(d=>(d.temp??d.t??0)===0);
+      const sto=pts.filter(d=>(d.temp??d.t??0)>0);
+      const color=STRATEGY_COLORS[s]||'#999';
+      if(det.length)traces.push({x:det.map(d=>d.ppl),y:det.map(d=>d.mauve),mode:'markers',type:'scatter',
+        name:s,marker:{color,size:det.map(d=>8+(getNFEForStrategy(s,d.steps??128)/50)),symbol:'circle'},
+        text:det.map(d=>`${s}@${d.steps??d.steps} (t=${d.temp??d.t??0})<br>PPL=${d.ppl}, MAUVE=${d.mauve}<br>NFE=${getNFEForStrategy(s,d.steps??128)}`),
+        hovertemplate:'%{text}<extra></extra>',showlegend:true});
+      if(showStochastic&&sto.length)traces.push({x:sto.map(d=>d.ppl),y:sto.map(d=>d.mauve),mode:'markers',type:'scatter',
+        name:s+' (stoch)',marker:{color,size:sto.map(d=>8+(getNFEForStrategy(s,d.steps??128)/50)),symbol:'circle-open',line:{width:2,color}},
+        text:sto.map(d=>`${s}@${d.steps} (t=${d.temp??d.t})<br>PPL=${d.ppl}, MAUVE=${d.mauve}`),
+        hovertemplate:'%{text}<extra></extra>',showlegend:false});
+    }
+    if(showPareto){
+      const allPts=data.filter(d=>d.ppl!=null&&d.mauve!=null).map(d=>({ppl:d.ppl,mauve:d.mauve}));
+      const pf=computePareto(allPts).sort((a,b)=>a.ppl-b.ppl);
+      if(pf.length>1)traces.push({x:pf.map(d=>d.ppl),y:pf.map(d=>d.mauve),mode:'lines',type:'scatter',
+        name:'Pareto front',line:{dash:'dash',color:dark?'#4f98a3':'#01696f',width:1.5},hoverinfo:'none',showlegend:true});
+    }
+    return traces;
+  }
+
+  const layout={
+    paper_bgcolor:paper,plot_bgcolor:paper,font:{color:fontColor,family:'Satoshi,sans-serif',size:11},
+    xaxis:{title:'PPL ↓ (lower = more fluent)',autorange:'reversed',gridcolor:gridColor,zerolinecolor:gridColor},
+    yaxis:{title:'MAUVE ↑ (higher = better)',gridcolor:gridColor,zerolinecolor:gridColor,range:[0,1.05]},
+    margin:{t:20,b:50,l:55,r:20},legend:{bgcolor:'rgba(0,0,0,0)',font:{size:10}},
+    hoverlabel:{bgcolor:dark?'#2d2b28':'#fff',bordercolor:dark?'#525050':'#d0cec6',font:{color:fontColor}}
+  };
+  const cfg={responsive:true,displayModeBar:false};
+
+  Plotly.newPlot('pareto-llada',buildTraces(STOCHASTICITY_SWEEP.data.filter(d=>d.mauve!=null).map(d=>({...d,ppl:LLADA_DET.data.find(r=>r.strategy===d.strategy&&r.steps===d.steps)?.ppl})),'LLaDA'),{...layout},cfg);
+  Plotly.newPlot('pareto-dream',buildTraces(DREAM_DATA.data,'Dream'),{...layout},cfg);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   STOCHASTICITY LAB
+   ════════════════════════════════════════════════════════════════════════ */
+let stoRendered=false;
+const stoCharts=[];
+const tempLevels=[0.0,0.1,0.25,0.5];
+const STO_STRATEGIES=['none','random','high_entropy'];
+
+function renderStochasticity(){
+  stoRendered=true;
+  const c=getChartColors();
+  // NFE lookup for each strategy
+  const nfeFor={none:128,random:257,high_entropy:437};
+
+  for(let i=0;i<4;i++){
+    const t=tempLevels[i];
+    const ctx=document.getElementById(`stoChart${i}`).getContext('2d');
+    const datasets=STO_STRATEGIES.map(s=>{
+      const pts=STOCHASTICITY_SWEEP.data.filter(d=>d.strategy===s&&d.t===t).sort((a,b)=>a.steps-b.steps);
+      return{label:s,data:pts.map(d=>({x:nfeFor[s]?Math.round(nfeFor[s]*(d.steps/256)):d.steps,y:d.mauve})),
+        borderColor:STRATEGY_COLORS[s],backgroundColor:STRATEGY_COLORS[s]+'18',
+        tension:.3,pointRadius:4,fill:false,borderWidth:2};
+    });
+    const ch=new Chart(ctx,{type:'line',data:{datasets},
+      options:{responsive:true,animation:{duration:300},
+        plugins:{legend:{labels:{color:c.label,font:{size:10},boxWidth:10}},
+          annotation:{annotations:i===3?{col:{type:'label',xValue:220,yValue:.25,content:['⚠ Collapse'],color:'var(--color-error)',font:{size:10}}}:{}}},
+        scales:{
+          x:{type:'linear',min:0,max:550,title:{display:true,text:'Actual NFE',color:c.label,font:{size:10}},ticks:{color:c.tick,font:{size:9}},grid:{color:c.grid}},
+          y:{min:0,max:1,title:{display:true,text:'MAUVE',color:c.label,font:{size:10}},ticks:{color:c.tick,font:{size:9}},grid:{color:c.grid}}
+        }}});
+    stoCharts.push(ch);
+  }
+
+  // Slider init
+  updateSlider(0);
+
+  // Heatmap
+  buildHeatmap();
+
+  // Diversity charts
+  buildDiversityCharts();
+  // PPL vs Temperature (Table 16)
+  buildPPLCharts();
+  // Three-way ANOVA table (Table 8)
+  buildANOVATable();
+}
+
+function updateSlider(val){
+  const temps=[0.0,0.1,0.25,0.5];
+  const t=temps[parseInt(val)];
+  document.getElementById('collapse-warn').classList.toggle('show',t>=0.25);
+  const tbody=document.getElementById('slider-tbody');
+  if(!tbody)return;
+  const nfeFor={none:128,random:257,high_entropy:437};
+  const rows=STO_STRATEGIES.map(s=>{
+    const pt=STOCHASTICITY_SWEEP.data.find(d=>d.strategy===s&&d.t===t&&d.steps===128);
+    const m=pt?pt.mauve.toFixed(3):'—';
+    const se=pt&&pt.mauve_se!=null?` ±${pt.mauve_se.toFixed(3)}`:'';
+    const collapse=pt&&pt.collapse?'<span class="badge b-collapse">⚠</span>':'';
+    return`<tr><td>${strategyDot(s)}</td><td style="font-weight:600">${m}${se} ${collapse}</td><td>${nfeFor[s]||'—'}</td></tr>`;
+  });
+  tbody.innerHTML=rows.join('');
+}
+
+function buildHeatmap(){
+  const el=document.getElementById('heatmap-grid');
+  if(!el)return;
+  const steps=[64,128,256];const temps=[0.0,0.1,0.25,0.5];
+  // header row
+  el.innerHTML=`<div class="heatmap-row-label" style="grid-column:1"></div>${temps.map(t=>`<div class="heatmap-header">t=${t}</div>`).join('')}`;
+  for(const s of steps){
+    el.innerHTML+=`<div class="heatmap-row-label">${s}s</div>`;
+    for(const t of temps){
+      const d=MAUVE_GAP.data.find(x=>x.steps===s&&x.t===t);
+      const gap=d?d.gap:0;
+      const alpha=Math.min(gap/0.45,1);
+      const r=Math.round(192*alpha);const g=Math.round(57*(1-alpha));const b=Math.round(43*(1-alpha));
+      const bg=gap<0.05?'var(--color-surface-offset)':`rgb(${r},${g},${b})`;
+      const key=MAUVE_GAP.key_finding;
+      const isStar=s===key.steps&&t===key.t;
+      const seStr=d&&d.se!=null?`±${d.se}`:'';
+      el.innerHTML+=`<div class="heatmap-cell${isStar?' heatmap-star':''}" style="background:${bg}" title="Steps=${s}, t=${t}, gap=${gap}${seStr?', SE='+seStr:''}${isStar?', p=0.020':''}">
+        ${gap.toFixed(3)}${isStar?'<div style="font-size:.6rem;margin-top:.15rem">p=0.020</div>':''}
+      </div>`;
+    }
+  }
+}
+
+function buildDiversityCharts(){
+  const c=getChartColors();
+  const tempLabels=['0.0','0.1','0.25','0.5'];
+  function mkChart(id,data,yLabel,title){
+    const ctx=document.getElementById(id);if(!ctx)return;
+    return new Chart(ctx.getContext('2d'),{type:'line',
+      data:{labels:tempLabels,datasets:STO_STRATEGIES.map(s=>({
+        label:s,data:data[s],borderColor:STRATEGY_COLORS[s],
+        backgroundColor:STRATEGY_COLORS[s]+'18',tension:.3,pointRadius:4,fill:false,borderWidth:2
+      }))},
+      options:{responsive:true,plugins:{legend:{labels:{color:c.label,font:{size:10},boxWidth:10}}},
+        scales:{
+          x:{title:{display:true,text:'unmask_temp',color:c.label,font:{size:10}},ticks:{color:c.tick},grid:{color:c.grid}},
+          y:{title:{display:true,text:yLabel,color:c.label,font:{size:10}},ticks:{color:c.tick},grid:{color:c.grid}}
+        }}});
+  }
+  mkChart('selfbleuChart',SELFBLEU_VS_TEMP,'Self-BLEU');
+  mkChart('distinct3Chart',DISTINCT3_VS_TEMP,'Distinct-3');
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   PPL vs TEMPERATURE CHARTS  (Table 16)
+   ════════════════════════════════════════════════════════════════════════ */
+function buildPPLCharts(){
+  const c=getChartColors();
+  const tempLabels=['0.0','0.1','0.25','0.5'];
+  const noneColors=['#01696f','#1a8a91','#5dbec5'];
+  const hEntColors=['#a12c7b','#c24a96','#d970b0'];
+  function mkPPLChart(id,strategy){
+    const ctx=document.getElementById(id);if(!ctx)return;
+    const rows=PPL_TEMPS.data.filter(r=>r.strategy===strategy);
+    const datasets=rows.map((r,i)=>({
+      label:`${strategy==='none'?'none':'h_ent'}@${r.steps}`,
+      data:[r.t0,r.t1,r.t25,r.t5],
+      borderColor:strategy==='none'?noneColors[i]:hEntColors[i],
+      backgroundColor:'transparent',tension:.3,pointRadius:4,fill:false,borderWidth:2
+    }));
+    new Chart(ctx.getContext('2d'),{type:'line',data:{labels:tempLabels,datasets},
+      options:{responsive:true,
+        plugins:{legend:{labels:{color:c.label,font:{size:10},boxWidth:10}}},
+        scales:{
+          x:{title:{display:true,text:'unmask_temp',color:c.label,font:{size:10}},ticks:{color:c.tick},grid:{color:c.grid}},
+          y:{title:{display:true,text:'PPL (lower = more fluent)',color:c.label,font:{size:10}},ticks:{color:c.tick},grid:{color:c.grid}}
+        }}});
+  }
+  mkPPLChart('pplNoneChart','none');
+  mkPPLChart('pplHEntChart','high_entropy');
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   COMPUTE AUDIT
+   ════════════════════════════════════════════════════════════════════════ */
+let computeRendered=false;
+function renderCompute(){
+  computeRendered=true;
+  const c=getChartColors();
+  const strats=NFE_DATA.strategies;
+  const ctx=document.getElementById('nfeBar').getContext('2d');
+  new Chart(ctx,{type:'bar',
+    data:{labels:strats.map(s=>s.name),
+      datasets:[{label:'Actual NFE',data:strats.map(s=>s.actual_nfe),
+        backgroundColor:strats.map(s=>s.ratio>=3.4?'rgba(192,57,43,.75)':s.ratio>=2?'rgba(209,153,0,.75)':'rgba(1,105,111,.75)'),
+        borderColor:strats.map(s=>s.ratio>=3.4?'#c0392b':s.ratio>=2?'#d19900':'#01696f'),
+        borderWidth:1,borderRadius:3,maxBarThickness:16}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        annotation:{annotations:{nominal:{type:'line',xMin:256,xMax:256,borderColor:'rgba(106,106,106,.6)',borderWidth:1.5,borderDash:[5,4],label:{content:'256 nominal',display:true,position:'start',color:c.label,font:{size:9}}}}}},
+      scales:{
+        x:{min:0,max:560,title:{display:true,text:'Actual NFE (forward passes)',color:c.label,font:{size:10}},ticks:{color:c.tick,font:{size:9}},grid:{color:c.grid}},
+        y:{ticks:{color:c.tick,font:{size:10}},grid:{color:c.grid}}
+      }}});
+  updateEqualizer();
+  renderRemaskAblation();
+  // Compute-matched comparison (Table 4)
+  buildComputeMatchedTable();
+}
+
+function renderRemaskAblation(){
+  const c=getChartColors();
+  const ctx=document.getElementById('remaskAblChart');if(!ctx)return;
+  const d=REMASK_ABLATION.data;
+  const isDefault=d.map(r=>r.fraction===0.15);
+  new Chart(ctx.getContext('2d'),{type:'bar',
+    data:{labels:d.map(r=>r.label),datasets:[
+      {label:'MAUVE↑',data:d.map(r=>r.mauve),
+       backgroundColor:isDefault.map(x=>x?'rgba(161,44,123,.75)':'rgba(1,105,111,.65)'),
+       borderColor:isDefault.map(x=>x?'#a12c7b':'#01696f'),
+       borderWidth:1,borderRadius:4,maxBarThickness:28,yAxisID:'y'},
+      {label:'PPL↓',data:d.map(r=>r.ppl),
+       backgroundColor:'rgba(209,153,0,.28)',borderColor:'#d19900',
+       borderWidth:1,borderRadius:4,maxBarThickness:28,yAxisID:'y2'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:c.label,font:{size:10},boxWidth:10}},
+        annotation:{annotations:{dashed:{type:'line',yMin:d[0].mauve,yMax:d[0].mauve,yScaleID:'y',borderColor:'rgba(1,105,111,.4)',borderDash:[4,3],borderWidth:1,label:{content:'max MAUVE (5%)',display:true,position:'end',color:c.label,font:{size:9}}}}}},
+      scales:{
+        x:{ticks:{color:c.tick},grid:{color:c.grid}},
+        y:{type:'linear',position:'left',title:{display:true,text:'MAUVE↑',color:c.label,font:{size:10}},min:0,max:1,ticks:{color:c.tick},grid:{color:c.grid}},
+        y2:{type:'linear',position:'right',title:{display:true,text:'PPL↓',color:c.label,font:{size:10}},grid:{drawOnChartArea:false},ticks:{color:c.tick}}
+      }}});
+  const el=document.getElementById('remask-abl-table');if(!el)return;
+  const thStyle='padding:.4rem .5rem;text-align:left;font-size:.68rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase';
+  const rows=d.map(r=>`<tr style="${r.fraction===0.15?'background:color-mix(in oklch,var(--color-primary) 6%,transparent)':''}">
+    <td style="padding:.4rem .5rem;font-family:var(--font-mono);font-size:.78rem;${r.fraction===0.15?'font-weight:700':''}">${r.label}</td>
+    <td style="padding:.4rem .5rem;font-size:.78rem;color:var(--color-primary);font-weight:600">${r.mauve.toFixed(3)}</td>
+    <td style="padding:.4rem .5rem;font-size:.78rem;color:var(--color-text-muted)">${r.ppl.toFixed(1)}</td>
+    <td style="padding:.4rem .5rem;font-size:.78rem;color:var(--color-text-muted)">${r.distinct3.toFixed(3)}</td>
+    <td style="padding:.4rem .5rem;font-size:.78rem;font-family:var(--font-mono);color:var(--color-text-muted)">${r.remasks}</td>
+  </tr>`).join('');
+  el.innerHTML=`<table style="width:100%;border-collapse:collapse;border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:.5rem">
+    <thead><tr style="background:var(--color-surface-offset)">
+      ${['Fraction','MAUVE↑','PPL↓','Dist-3↑','Remasks/sample'].map(h=>`<th style="${thStyle}">${h}</th>`).join('')}
+    </tr></thead><tbody>${rows}</tbody></table>
+    <p style="font-size:.72rem;color:var(--color-text-faint)">Bold/highlighted row = 15% default. MAUVE degrades 0.896 → 0.602 → 0.482 confirming causality.</p>`;
+}
+
+function updateEqualizer(){
+  const target=parseInt(document.getElementById('nfe-target').value)||257;
+  const el=document.getElementById('equalizer-table');if(!el)return;
+  const rows=NFE_DATA.strategies.map(s=>{
+    const nfePer256=s.actual_nfe;
+    const achievable=Math.floor(target/(nfePer256/256));
+    const noneM=STOCHASTICITY_SWEEP.data.find(d=>d.strategy==='none'&&d.steps===256&&d.t===0);
+    const est=s.ratio<=1?'~0.65':s.ratio<=2?'~0.60':'~0.50';
+    return`<tr style="font-size:.8rem"><td style="padding:.4rem .5rem;font-family:var(--font-mono)">${s.name}</td><td style="padding:.4rem .5rem;font-family:var(--font-mono)">${achievable} steps</td><td style="padding:.4rem .5rem">${est}</td><td style="padding:.4rem .5rem;color:var(--color-text-muted);font-size:.75rem">${s.ratio.toFixed(1)}× base ratio</td></tr>`;
+  });
+  el.innerHTML=`<table style="width:100%;border-collapse:collapse;border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden"><thead><tr style="background:var(--color-surface-offset)"><th style="padding:.4rem .5rem;text-align:left;font-size:.7rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase">Strategy</th><th style="padding:.4rem .5rem;text-align:left;font-size:.7rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase">Achievable steps</th><th style="padding:.4rem .5rem;text-align:left;font-size:.7rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase">Est. MAUVE</th><th style="padding:.4rem .5rem;text-align:left;font-size:.7rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase">NFE ratio</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   MODEL DEEP-DIVE — sub-tabs + result tables
+   ════════════════════════════════════════════════════════════════════════ */
+function switchModelTab(model,tab){
+  document.querySelectorAll(`#tab-deepdive [id^="${model}-"]`).forEach(p=>p.classList.remove('active'));
+  document.getElementById(`${model}-${tab}`).classList.add('active');
+  document.querySelectorAll(`.model-card .model-tab`).forEach(btn=>{
+    if(btn.getAttribute('onclick')===`switchModelTab('${model}','${tab}')`){btn.classList.add('active');}
+    else if(btn.getAttribute('onclick')?.startsWith(`switchModelTab('${model}'`)){btn.classList.remove('active');}
+  });
+  if(tab==='results')buildModelResultTable(model);
+  if(tab==='downstream'&&model==='llada'){buildGSM8KTable();buildHumanEvalTable();}
+}
+
+function buildGSM8KTable(){
+  const el=document.getElementById('gsm8k-table');if(!el)return;
+  const thStyle='padding:.3rem .5rem;text-align:left;font-size:.68rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--color-border)';
+  const rows=GSM8K.data.map(r=>{
+    const isBest=r.t1>r.t0;
+    return`<tr>
+      <td style="padding:.3rem .5rem;border-bottom:1px solid var(--color-divider)">${strategyDot(r.strategy)}</td>
+      <td style="padding:.3rem .5rem;border-bottom:1px solid var(--color-divider);color:var(--color-text-muted)">${r.steps}</td>
+      <td style="padding:.3rem .5rem;border-bottom:1px solid var(--color-divider);color:var(--color-text-muted);font-family:var(--font-mono)">${r.t0.toFixed(1)}</td>
+      <td style="padding:.3rem .5rem;border-bottom:1px solid var(--color-divider);font-family:var(--font-mono);${isBest?'color:var(--color-success);font-weight:600':'color:var(--color-text-muted)'}">${r.t1.toFixed(1)}</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML=`<thead><tr style="background:var(--color-surface-offset)">
+    ${['Strategy','Steps','Acc% t=0.0','Acc% t=0.1'].map(h=>`<th style="${thStyle}">${h}</th>`).join('')}
+  </tr></thead><tbody>${rows}</tbody>`;
+}
+
+function buildHumanEvalTable(){
+  const el=document.getElementById('humaneval-table');if(!el)return;
+  const thStyle='padding:.3rem .5rem;text-align:left;font-size:.68rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--color-border)';
+  let prevBlock='';
+  const rows=HUMANEVAL.data.map(r=>{
+    let out='';
+    if(r.block!==prevBlock){
+      prevBlock=r.block;
+      out+=`<tr style="background:var(--color-surface-offset)"><td colspan="5" style="padding:.25rem .5rem;font-size:.7rem;color:var(--color-text-faint);font-weight:600;letter-spacing:.05em;font-style:italic">${r.block}</td></tr>`;
+    }
+    const isNominalWinner=r.strategy==='high_entropy'&&r.block.startsWith('Nominal');
+    const isMatchedWinner=r.strategy==='none*'&&r.block.startsWith('Compute');
+    out+=`<tr style="${isNominalWinner||isMatchedWinner?'background:color-mix(in oklch,var(--color-primary) 5%,transparent)':''}">
+      <td style="padding:.3rem .5rem;border-bottom:1px solid var(--color-divider)">${strategyDot(r.strategy.replace('*',''))}<span style="font-size:.7rem;color:var(--color-text-faint)">${r.strategy.endsWith('*')?' *':''}</span></td>
+      <td style="padding:.3rem .5rem;border-bottom:1px solid var(--color-divider);font-family:var(--font-mono);font-size:.78rem;color:var(--color-text-muted)">${r.nominal_steps}</td>
+      <td style="padding:.3rem .5rem;border-bottom:1px solid var(--color-divider);font-family:var(--font-mono);font-size:.78rem;color:var(--color-text-muted)">${r.actual_nfe}</td>
+      <td style="padding:.3rem .5rem;border-bottom:1px solid var(--color-divider);font-family:var(--font-mono);font-size:.78rem;${isNominalWinner?'color:var(--color-info);font-weight:600':isMatchedWinner?'color:var(--color-success);font-weight:600':'color:var(--color-text-muted)'}">${r.t0}</td>
+      <td style="padding:.3rem .5rem;border-bottom:1px solid var(--color-divider);font-family:var(--font-mono);font-size:.78rem;color:var(--color-text-muted)">${r.t1}</td>
+    </tr>`;
+    return out;
+  }).join('');
+  el.innerHTML=`<thead><tr style="background:var(--color-surface-offset)">
+    ${['Strategy','Nom. Steps','Actual NFE','pass@1 t=0.0','pass@1 t=0.1'].map(h=>`<th style="${thStyle}">${h}</th>`).join('')}
+  </tr></thead><tbody>${rows}</tbody>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   ANOVA TABLE BUILDER  (Table 8)
+   ════════════════════════════════════════════════════════════════════════ */
+function buildANOVATable(){
+  const el=document.getElementById('anova-table');if(!el)return;
+  const th='padding:.375rem .625rem;text-align:left;font-size:.68rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase';
+  const thR='padding:.375rem .625rem;text-align:right;font-size:.68rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase';
+  const rows=ANOVA_DATA.map(r=>{
+    const pSig=r.p==='<0.001'||parseFloat(r.p)<0.05;
+    const isKey=r.key;
+    const etaBar=`<div style="display:inline-block;width:${Math.round(r.eta2*80)}px;height:6px;border-radius:3px;background:${isKey?'var(--color-primary)':pSig?'var(--color-success)':'var(--color-text-faint)'};vertical-align:middle;margin-right:4px"></div>`;
+    return`<tr style="${isKey?'background:color-mix(in oklch,var(--color-primary) 7%,transparent)':''}">
+      <td style="padding:.375rem .625rem;border-bottom:1px solid var(--color-divider);font-size:.82rem;${isKey?'font-weight:600;color:var(--color-text)':'color:var(--color-text-muted)'}">${r.factor}${isKey?` <span style="font-size:.65rem;color:var(--color-primary);font-weight:700">KEY</span>`:''}</td>
+      <td style="padding:.375rem .625rem;border-bottom:1px solid var(--color-divider);font-family:var(--font-mono);font-size:.8rem;text-align:right;color:var(--color-text-muted)">${r.F.toFixed(2)}</td>
+      <td style="padding:.375rem .625rem;border-bottom:1px solid var(--color-divider);font-family:var(--font-mono);font-size:.8rem;text-align:right;${pSig?'color:var(--color-error);font-weight:600':'color:var(--color-text-muted)'}">${r.p}</td>
+      <td style="padding:.375rem .625rem;border-bottom:1px solid var(--color-divider);font-size:.8rem;white-space:nowrap">${etaBar}<span style="font-family:var(--font-mono);font-size:.78rem;color:var(--color-text-muted)">${r.eta2.toFixed(3)}</span></td>
+    </tr>`;
+  }).join('');
+  el.innerHTML=`<table style="width:100%;border-collapse:collapse;border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden">
+    <thead><tr style="background:var(--color-surface-offset)">
+      <th style="${th}">Factor</th>
+      <th style="${thR}">F</th>
+      <th style="${thR}">p</th>
+      <th style="${th}">Partial η² (bar ∝ size)</th>
+    </tr></thead><tbody>${rows}</tbody>
+  </table>
+  <p style="font-size:.72rem;color:var(--color-text-faint);margin-top:.5rem">Bold rows: p&lt;0.05. KEY row: the interaction that requires controlling all three confounds simultaneously. Temperature dominates (η²=0.908); strategy×temperature interaction significant (p=0.002, η²=0.469).</p>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   COMPUTE-MATCHED TABLE BUILDER  (Table 4)
+   ════════════════════════════════════════════════════════════════════════ */
+function buildComputeMatchedTable(){
+  const el=document.getElementById('compute-matched-table');if(!el)return;
+  const th='padding:.375rem .5rem;text-align:left;font-size:.68rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase';
+  const thR='padding:.375rem .5rem;text-align:right;font-size:.68rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase';
+  let prevNFE=null;
+  const rows=COMPUTE_MATCHED.data.map(r=>{
+    const isNone=r.strategy==='none';
+    const sep=r.nfe!==prevNFE&&prevNFE!==null?`<tr style="height:2px;background:var(--color-border)"><td colspan="5"></td></tr>`:'';
+    prevNFE=r.nfe;
+    const nfeCell=isNone?`<td style="padding:.375rem .5rem;border-bottom:1px solid var(--color-divider);font-family:var(--font-mono);font-weight:700;color:var(--color-text);font-size:.8rem" rowspan="1">${r.nfe}</td>`
+      :`<td style="padding:.375rem .5rem;border-bottom:1px solid var(--color-divider);color:var(--color-text-faint);font-size:.75rem"></td>`;
+    const deltaStr=r.delta===null?'<span style="color:var(--color-text-faint)">—</span>'
+      :`<span style="color:var(--color-error);font-family:var(--font-mono);font-size:.78rem">${r.delta.toFixed(3)}</span>`;
+    return sep+`<tr style="${isNone?'background:color-mix(in oklch,var(--color-primary) 5%,transparent)':''}">
+      ${nfeCell}
+      <td style="padding:.375rem .5rem;border-bottom:1px solid var(--color-divider)">${strategyDot(r.strategy)}</td>
+      <td style="padding:.375rem .5rem;border-bottom:1px solid var(--color-divider);font-family:var(--font-mono);font-size:.8rem;text-align:right;${isNone?'color:var(--color-success);font-weight:600':'color:var(--color-text-muted)'}">${r.ppl.toFixed(1)}</td>
+      <td style="padding:.375rem .5rem;border-bottom:1px solid var(--color-divider);font-family:var(--font-mono);font-size:.8rem;text-align:right;${isNone?'color:var(--color-info);font-weight:600':'color:var(--color-text-muted)'}">${r.mauve.toFixed(3)}</td>
+      <td style="padding:.375rem .5rem;border-bottom:1px solid var(--color-divider);text-align:right">${deltaStr}</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML=`<table style="width:100%;border-collapse:collapse;border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden">
+    <thead><tr style="background:var(--color-surface-offset)">
+      <th style="${th}">NFE</th><th style="${th}">Strategy</th>
+      <th style="${thR}">PPL↓</th><th style="${thR}">MAUVE↑</th><th style="${thR}">ΔMAUVE vs. none</th>
+    </tr></thead><tbody>${rows}</tbody>
+  </table>
+  <p style="font-size:.72rem;color:var(--color-text-faint);margin-top:.5rem">none (highlighted) wins MAUVE at every NFE budget; the gap widens from −0.012 at NFE=128 to −0.114 at NFE=512. t=0.0, 3-seed mean.</p>`;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   CARE CROSS-MODEL LEADERBOARD  (Tables 11+20)
+   ════════════════════════════════════════════════════════════════════════ */
+/* ── CARE cross-model summary — state ───────────────────────────────── */
+let careSortKey='gap';
+let careSortAsc=false;
+let careTierFilter='all';   // 'all' | '1' | '2'
+let careTypeFilter='all';   // 'all' | 'dLLM' | 'AR'
+let careGroupBy='none';     // 'none' | 'foundation'
+let carePrevRanks=new Map();// model → rank from last render (for delta flash)
+
+const AR_MAUVE_BASELINE=0.742; // GPT-2-XL mauve_none — used for AR-gap column
+
+// Foundation family classifier
+function foundationFamily(f){
+  if(!f)return'Other';
+  if(f.startsWith('LLaMA-3'))return'LLaMA-3 Family';
+  if(f.startsWith('Qwen2.5'))return'Qwen2.5 Family';
+  if(f.startsWith('LLaMA-2'))return'LLaMA-2 Family';
+  return'Other';
+}
+
+// Generic pill button builder with active-state tracking by group id
+function carePillBtn(groupId,value,label,activeValue){
+  const isActive=value===activeValue;
+  return`<button onclick="${groupId}Fn('${value}')" id="care-${groupId}-btn-${value}"
+    style="padding:.28rem .65rem;border-radius:var(--radius-sm);border:1px solid var(--color-border);
+      background:${isActive?'var(--color-primary)':'var(--color-surface-offset)'};
+      color:${isActive?'#fff':'var(--color-text-muted)'};font-size:.72rem;cursor:pointer;
+      font-family:var(--font-display);font-weight:600;transition:all var(--transition)">${label}</button>`;
+}
+function updateCarePills(groupId,value,values){
+  values.forEach(v=>{
+    const btn=document.getElementById(`care-${groupId}-btn-${v}`);if(!btn)return;
+    btn.style.background=v===value?'var(--color-primary)':'var(--color-surface-offset)';
+    btn.style.color=v===value?'#fff':'var(--color-text-muted)';
+  });
+}
+
+// Expose to onclick — names must match groupId + "Fn" (camelCase, no hyphens)
+function tierBtnFn(v){filterCareTier(v);}
+function typeBtnFn(v){filterCareType(v);}
+
+function buildCareLeaderboard(){
+  const el=document.getElementById('care-leaderboard-summary');if(!el)return;
+  const tierBtns=['all','1','2'].map(v=>carePillBtn('tierBtn',v,v==='all'?'All Tiers':v==='1'?'Tier 1':'Tier 2',careTierFilter)).join('');
+  const typeBtns=['all','dLLM','AR'].map(v=>carePillBtn('typeBtn',v,v==='all'?'All Types':v,careTypeFilter)).join('');
+  const grpBtn=(active)=>`<button id="care-group-toggle" onclick="toggleCareGroup()"
+    style="padding:.28rem .65rem;border-radius:var(--radius-sm);border:1px solid ${active?'var(--color-primary)':'var(--color-border)'};
+      background:${active?'color-mix(in oklch,var(--color-primary) 12%,transparent)':'var(--color-surface-offset)'};
+      color:${active?'var(--color-primary)':'var(--color-text-muted)'};font-size:.72rem;cursor:pointer;
+      font-family:var(--font-display);font-weight:600;transition:all var(--transition)">
+    ⊞ Group by Foundation</button>`;
+  el.innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.875rem">
+      <div style="display:flex;align-items:center;gap:.375rem;flex-wrap:wrap">
+        <span style="font-size:.72rem;color:var(--color-text-muted);font-weight:600;min-width:28px">Tier:</span>
+        ${tierBtns}
+        <span style="font-size:.72rem;color:var(--color-text-muted);font-weight:600;margin-left:.75rem;min-width:32px">Type:</span>
+        ${typeBtns}
+        <span style="margin-left:auto"></span>
+        ${grpBtn(careGroupBy==='foundation')}
+      </div>
+      <div style="font-size:.7rem;color:var(--color-text-faint)">
+        Click column headers to sort · Rank badges (#1 #2 #3) update with every sort &amp; filter · <span style="font-style:italic">Foundation?</span> = pending confirmation
+      </div>
+    </div>
+    <div id="care-lb-table-inner"></div>
+    <p style="font-size:.72rem;color:var(--color-text-faint);margin-top:.5rem">Gap = MAUVE(none) − MAUVE(h_ent.) at t=0.25. AR Gap = Δ vs GPT-2-XL baseline (0.742). Color: red ≥0.25, amber ≥0.10, green &lt;0.10. * MoE at t=0.1. † Dream uses entropy strategy. HE = pass@1 (steps=512).</p>`;
+  renderCareTable();
+}
+
+function filterCareTier(v){
+  careTierFilter=v;
+  updateCarePills('tierBtn',v,['all','1','2']);
+  renderCareTable();
+}
+function filterCareType(v){
+  careTypeFilter=v;
+  updateCarePills('typeBtn',v,['all','dLLM','AR']);
+  renderCareTable();
+}
+function toggleCareGroup(){
+  careGroupBy=careGroupBy==='foundation'?'none':'foundation';
+  const btn=document.getElementById('care-group-toggle');
+  if(btn){
+    const on=careGroupBy==='foundation';
+    btn.style.background=on?'color-mix(in oklch,var(--color-primary) 12%,transparent)':'var(--color-surface-offset)';
+    btn.style.color=on?'var(--color-primary)':'var(--color-text-muted)';
+    btn.style.borderColor=on?'var(--color-primary)':'var(--color-border)';
+  }
+  renderCareTable();
+}
+function sortCareTable(key){
+  const ascDefault=key==='ppl_none'||key==='ppl_hent';
+  if(careSortKey===key){careSortAsc=!careSortAsc;}
+  else{careSortKey=key;careSortAsc=ascDefault;}
+  renderCareTable();
+}
+
+function renderCareTable(){
+  const inner=document.getElementById('care-lb-table-inner');if(!inner)return;
+  const fmt=v=>v!=null?v.toFixed(3):'<span style="color:var(--color-text-faint)">—</span>';
+  const fmtPPL=v=>v!=null?v.toFixed(1):'<span style="color:var(--color-text-faint)">—</span>';
+
+  // ── 1. FILTER ──────────────────────────────────────────────────────────
+  let allRows=CARE_LEADERBOARD.data.filter(r=>r.tier>0);
+  let arRows =CARE_LEADERBOARD.data.filter(r=>r.tier===0);
+
+  // Tier filter
+  if(careTierFilter!=='all'){
+    const t=parseInt(careTierFilter);
+    allRows=allRows.filter(r=>r.tier===t);
+  }
+  // Type filter — affects both dLLM rows and AR reference visibility
+  if(careTypeFilter==='dLLM'){
+    allRows=allRows.filter(r=>r.type==='dLLM');
+    arRows=[];
+  } else if(careTypeFilter==='AR'){
+    allRows=[];
+    // arRows unchanged
+  }
+
+  // ── 2. SORT ────────────────────────────────────────────────────────────
+  const sortRows=rows=>[...rows].sort((a,b)=>{
+    const av=a[careSortKey],bv=b[careSortKey];
+    if(av==null&&bv==null)return 0;
+    if(av==null)return 1; if(bv==null)return -1;
+    return careSortAsc?(av-bv):(bv-av);
+  });
+  allRows=sortRows(allRows);
+
+  // ── 3. RANK ASSIGNMENT + DELTA FLASH ──────────────────────────────────
+  let rankCounter=0;
+  allRows.forEach(r=>{
+    r._rank=r[careSortKey]!=null?++rankCounter:null;
+    const prev=carePrevRanks.get(r.model);
+    r._rankDelta=(prev!=null&&r._rank!=null)?(prev-r._rank):0;
+  });
+  // Snapshot new ranks for next render
+  carePrevRanks=new Map(allRows.map(r=>[r.model,r._rank]));
+
+  // ── 4. BEST-AT DETECTION ───────────────────────────────────────────────
+  const BEST_METRICS=[
+    {key:'he',higher:true,label:'Best HE',cls:'best-he'},
+  ];
+  const bestModel={};
+  BEST_METRICS.forEach(({key,higher})=>{
+    const winner=allRows.reduce((b,r)=>{
+      if(r[key]==null)return b;
+      if(!b)return r;
+      return higher?(r[key]>b[key]?r:b):(r[key]<b[key]?r:b);
+    },null);
+    if(winner)bestModel[key]=winner.model;
+  });
+
+  // ── 5. FOUNDATION GROUPING ────────────────────────────────────────────
+  // When grouping, split allRows into family buckets; sort within each
+  let groupedRows=[];
+  if(careGroupBy==='foundation'){
+    const families={};
+    allRows.forEach(r=>{
+      const fam=foundationFamily(r.foundation);
+      if(!families[fam])families[fam]=[];
+      families[fam].push(r);
+    });
+    const famOrder=['LLaMA-3 Family','Qwen2.5 Family','LLaMA-2 Family','Other'];
+    famOrder.forEach(fam=>{
+      if(!families[fam])return;
+      groupedRows.push({_isSep:true,label:fam});
+      sortRows(families[fam]).forEach(r=>groupedRows.push(r));
+    });
+  } else {
+    groupedRows=allRows;
+  }
+
+  // ── HEADER HELPERS ─────────────────────────────────────────────────────
+  const sortIcon=key=>{
+    if(careSortKey!==key)return`<span style="opacity:.35;font-size:.7em">⇅</span>`;
+    return careSortAsc?`<span style="color:var(--color-primary);font-size:.8em">▲</span>`
+                      :`<span style="color:var(--color-primary);font-size:.8em">▼</span>`;
+  };
+  const thBase='padding:.4rem .5rem;font-size:.68rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--color-border);white-space:nowrap';
+  const thSort=(key,label,right=true)=>{const active=careSortKey===key;
+    return`<th onclick="sortCareTable('${key}')" style="${thBase};text-align:${right?'right':'left'};cursor:pointer;${active?'color:var(--color-primary);':''}user-select:none" title="Sort by ${label}">${label} ${sortIcon(key)}</th>`;};
+  const thStatic=(label,right=false,span='')=>`<th ${span} style="${thBase};text-align:${right?'right':'left'}">${label}</th>`;
+
+  // ── ROW BUILDING ───────────────────────────────────────────────────────
+  const COLSPAN=11;
+  const rankBadge=rank=>{if(rank==null)return'';
+    const cls=rank===1?'rank-1':rank===2?'rank-2':rank===3?'rank-3':'rank-other';
+    return`<span class="rank-badge ${cls}">${rank}</span>`;};
+  const typeBadge=type=>`<span class="type-badge type-${(type||'dllm').toLowerCase()}">${type||'dLLM'}</span>`;
+  const foundationCell=r=>{if(!r.foundation)return'—';
+    return r.fConfirmed?`<span class="foundation-cell">${r.foundation}</span>`
+      :`<span class="foundation-cell foundation-unconfirmed" title="Pending confirmation">${r.foundation}?</span>`;};
+
+  const mkSepRow=(label,colspan=COLSPAN)=>
+    `<tr style="background:var(--color-surface-offset)"><td colspan="${colspan}" style="padding:.25rem .5rem;font-size:.7rem;color:var(--color-text-faint);font-weight:600;letter-spacing:.05em">${label}</td></tr>`;
+
+  const mkRow=r=>{
+    const isAR=r.tier===0;
+    const noteSpan=r.note?` <span style="font-size:.62rem;color:var(--color-text-faint)">${r.note}</span>`:'';
+    const gapColor=r.gap==null?'':r.gap>=0.25?'var(--color-error)':r.gap>=0.1?'var(--color-warning)':'var(--color-success)';
+    const hl=key=>`background:${careSortKey===key?'color-mix(in oklch,var(--color-primary) 5%,transparent)':'transparent'}`;
+    const td='padding:.4rem .5rem;border-bottom:1px solid var(--color-divider);font-family:var(--font-mono);font-size:.8rem;text-align:right';
+
+    // Best-at tags (max 2, priority order)
+    const myBest=BEST_METRICS.filter(m=>bestModel[m.key]===r.model).slice(0,2);
+    const bestTags=myBest.map(m=>`<span class="best-tag ${m.cls}">${m.label}</span>`).join('');
+
+    // Rank delta class for row flash
+    const deltaClass=r._rankDelta>=3?'rank-up':r._rankDelta<=-3?'rank-down':'';
+
+    // AR gap
+    const arGap=r.mauve_none!=null?(r.mauve_none-AR_MAUVE_BASELINE):null;
+    const arGapStr=arGap!=null
+      ?`<span class="${arGap>=0?'ar-gap-pos':'ar-gap-neg'}">${arGap>=0?'+':''}${arGap.toFixed(3)}</span>`
+      :`<span style="color:var(--color-text-faint)">—</span>`;
+
+    const rowBg=r.model==='LLaDA-8B-Base'?'background:color-mix(in oklch,var(--color-primary) 5%,transparent)':'';
+    return`<tr class="${deltaClass}" style="${rowBg}">
+      <td style="padding:.4rem .3rem;border-bottom:1px solid var(--color-divider);text-align:center;width:44px">${typeBadge(r.type)}</td>
+      <td style="padding:.4rem .5rem;border-bottom:1px solid var(--color-divider)">${foundationCell(r)}</td>
+      <td style="padding:.4rem .5rem;border-bottom:1px solid var(--color-divider);font-size:.8rem;font-weight:${r.tier===1?'600':'400'};color:var(--color-text)">${isAR?'':rankBadge(r._rank)}${r.model}${noteSpan}${bestTags}</td>
+      <td style="padding:.4rem .5rem;border-bottom:1px solid var(--color-divider);font-size:.75rem;color:var(--color-text-faint)">${r.scale}</td>
+      <td style="${td};color:var(--color-text-muted);${hl('ppl_none')}">${fmtPPL(r.ppl_none)}</td>
+      <td style="${td};${r.mauve_none>=0.94?'color:var(--color-info);font-weight:600':'color:var(--color-text-muted)'};${hl('mauve_none')}">${fmt(r.mauve_none)}</td>
+      <td style="${td};color:var(--color-text-muted);${hl('ppl_hent')}">${isAR?'—':fmtPPL(r.ppl_hent)}</td>
+      <td style="${td};color:var(--color-text-muted);${hl('mauve_hent')}">${isAR?'—':fmt(r.mauve_hent)}</td>
+      <td style="${td};font-weight:600;color:${gapColor};${hl('gap')}">${r.gap!=null?r.gap.toFixed(3):'—'}</td>
+      <td style="${td};${hl('he')};color:var(--color-text-muted)">${r.he!=null?r.he.toFixed(1):'—'}</td>
+      <td style="${td};${hl('ar_gap')}">${arGapStr}</td>
+    </tr>`;
+  };
+
+  // Build tier-section separators when not grouping by foundation
+  let bodyRows='';
+  if(careGroupBy==='foundation'){
+    groupedRows.forEach(item=>{
+      if(item._isSep){bodyRows+=mkSepRow(`⊞ ${item.label}`);}
+      else bodyRows+=mkRow(item);
+    });
+  } else {
+    let prevTier=-1;
+    groupedRows.forEach(r=>{
+      if(careTierFilter==='all'&&r.tier!==prevTier){
+        prevTier=r.tier;
+        const label=r.tier===1?'Tier 1 — Primary Open-Weight MDLMs':'Tier 2 — Extended Coverage';
+        bodyRows+=mkSepRow(label);
+      }
+      bodyRows+=mkRow(r);
+    });
+  }
+
+  // AR reference
+  const arBody=arRows.length
+    ?mkSepRow('AR Reference')+arRows.map(mkRow).join('')
+    :'';
+
+  inner.innerHTML=`<div style="overflow-x:auto">
+  <table style="width:100%;min-width:940px;border-collapse:collapse;border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden">
+    <thead>
+      <tr style="background:var(--color-surface-offset)">
+        ${thStatic('Type')}
+        ${thStatic('Foundation')}
+        ${thStatic('Model')}
+        ${thStatic('Scale')}
+        ${thStatic('none, t=0.25',true,'colspan="2"')}
+        ${thStatic('h_ent., t=0.25',true,'colspan="2"')}
+        ${thStatic('',true)}
+        ${thStatic('',true)}
+        ${thStatic('',true)}
+      </tr>
+      <tr style="background:var(--color-surface-offset)">
+        ${thStatic('',false,'colspan="4"')}
+        ${thSort('ppl_none','PPL↓')}
+        ${thSort('mauve_none','MAUVE↑')}
+        ${thSort('ppl_hent','PPL↓')}
+        ${thSort('mauve_hent','MAUVE↑')}
+        ${thSort('gap','Gap↑')}
+        ${thSort('he','HE p@1')}
+        ${thSort('ar_gap','AR Gap')}
+      </tr>
+    </thead>
+    <tbody>${bodyRows}${arBody}</tbody>
+  </table></div>`;
+}
+
+function tRow(cells){return`<tr>${cells.map((c,i)=>`<td style="padding:.3rem .5rem;border-bottom:1px solid var(--color-divider);color:${i===0?'var(--color-text)':'var(--color-text-muted)'}">${c}</td>`).join('')}</tr>`;}
+function tHead(cells){return`<thead><tr style="background:var(--color-surface-offset)">${cells.map(c=>`<th style="padding:.3rem .5rem;text-align:left;font-size:.68rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--color-border)">${c}</th>`).join('')}</tr></thead>`;}
+
+function buildModelResultTable(model){
+  if(model==='llada'){
+    const el=document.getElementById('llada-results-table');if(!el)return;
+    el.innerHTML=tHead(['Strategy','Steps','PPL','MAUVE'])+`<tbody>${LLADA_DET.data.map(r=>tRow([strategyDot(r.strategy),r.steps,r.ppl.toFixed(1),r.mauve.toFixed(3)])).join('')}</tbody>`;
+  }else if(model==='moe'){
+    const el=document.getElementById('moe-results-table');if(!el)return;
+    el.innerHTML=tHead(['Strategy','Steps','t','PPL','MAUVE'])+`<tbody>${LLADA_MOE.data.map(r=>tRow([strategyDot(r.strategy),r.steps,r.t,r.ppl.toFixed(1),r.mauve.toFixed(3)])).join('')}</tbody>`;
+  }else if(model==='dream'){
+    const el=document.getElementById('dream-results-table');if(!el)return;
+    el.innerHTML=tHead(['Strategy','Steps','t','PPL','MAUVE'])+`<tbody>${DREAM_DATA.data.map(r=>tRow([strategyDot(r.strategy),r.steps,r.temp.toFixed(1),r.ppl.toFixed(1),r.mauve.toFixed(3)])).join('')}</tbody>`;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   METHODOLOGY — protocol cards
+   ════════════════════════════════════════════════════════════════════════ */
+let methoRendered=false;
+const PROTOCOLS=[
+  {icon:'cpu',color:'#01696f',title:'Report Actual NFE',problem:'Same "256 steps" hides 128–513 forward passes (4× range).',detail:'Always measure and report actual forward passes per sample. NFE = (refinement steps per token) × (sequence length) × (number of remasked tokens per step). Do not conflate nominal step count with compute.'},
+  {icon:'bar-chart-2',color:'#d19900',title:'Multi-Metric Reporting',problem:'PPL and MAUVE rankings often reverse.',detail:'Report at minimum: MAUVE (distribution), PPL (fluency), Self-BLEU (pairwise diversity), Distinct-3 (vocabulary). A model can win on one metric while losing on all others.'},
+  {icon:'thermometer',color:'#a12c7b',title:'Control Stochasticity',problem:'Changing t: 0.0→0.1 shifts MAUVE by 0.3–0.5 — larger than any strategy.',detail:'Always sweep unmask_temp across {0.0, 0.1, 0.25, 0.5}. Report results at matched temperature levels. Never compare a deterministic baseline to a stochastic result.'},
+  {icon:'filter',color:'#006494',title:'Language Filtering',problem:'Off-target language contaminates MAUVE unpredictably.',detail:'Apply character-level language filter: accept samples with ASCII proportion ≥ 0.85 and CJK proportion ≤ 0.02. Report acceptance rates. High stochasticity + remasking can drop acceptance to 90%.'},
+  {icon:'target',color:'#da7101',title:'Include None Baseline',problem:'Improvements may be vs. artificially weak reference.',detail:'Always include the "none" (no remasking) strategy as your primary baseline. A strategy that improves over a poor baseline may not improve over the best no-remasking configuration.'},
+  {icon:'activity',color:'#437a22',title:'Report Uncertainty',problem:'Single-seed MAUVE margins <0.1 unreliable (SE up to 0.05).',detail:'Run at least 3 independent seeds for key comparisons. Report mean ± SE. Treat differences smaller than 2× SE as statistically inconclusive. The largest SE observed in this study was 0.05.'},
+  {icon:'cpu',color:'#7c3aed',title:'External-Evaluator PPL',problem:'Shared vocabulary inflates scores — model evaluates its own output domain.',detail:'Use Llama-3-8B as the PPL evaluator — not the model\'s own vocabulary. Evaluating a dLLM\'s output with the dLLM\'s own vocabulary systematically underestimates perplexity by amplifying in-distribution bias. An independent auto-regressive evaluator gives calibrated fluency scores.'}
+];
+
+function buildThreeSeedTable(){
+  const el=document.getElementById('three-seed-table');if(!el)return;
+  const thStyle='padding:.4rem .625rem;text-align:left;font-size:.68rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase';
+  const sep='<tr style="background:var(--color-surface-offset)"><td colspan="6" style="padding:.25rem .625rem;font-size:.7rem;color:var(--color-text-faint);font-weight:600;letter-spacing:.05em">t = 0.25 (stochastic)</td></tr>';
+  const rows=THREE_SEED.data.map((r,i)=>{
+    const highSE=r.se>=0.030;
+    const divider=i===4?sep:'';
+    return divider+`<tr style="${highSE?'background:color-mix(in oklch,var(--color-warning) 7%,transparent)':''}">
+      <td style="padding:.4rem .625rem;font-family:var(--font-mono);font-size:.78rem">${r.config}</td>
+      <td style="padding:.4rem .625rem;font-size:.78rem;color:var(--color-text-muted)">${r.t.toFixed(2)}</td>
+      <td style="padding:.4rem .625rem;font-family:var(--font-mono);font-size:.78rem;color:var(--color-text-muted)">${r.s1.toFixed(3)}</td>
+      <td style="padding:.4rem .625rem;font-family:var(--font-mono);font-size:.78rem;color:var(--color-text-muted)">${r.s2.toFixed(3)}</td>
+      <td style="padding:.4rem .625rem;font-family:var(--font-mono);font-size:.78rem;color:var(--color-text-muted)">${r.s3.toFixed(3)}</td>
+      <td style="padding:.4rem .625rem;font-family:var(--font-mono);font-size:.78rem;font-weight:600">
+        ${r.mean.toFixed(3)} <span style="font-size:.7rem;color:${highSE?'var(--color-warning)':'var(--color-text-faint)'}">±${r.se.toFixed(3)}</span>
+        ${highSE?'<span class="badge b-collapse" style="margin-left:.25rem;font-size:.6rem">high SE</span>':''}
+      </td>
+    </tr>`;
+  }).join('');
+  const header=`<tr style="background:var(--color-surface-offset)"><td colspan="6" style="padding:.25rem .625rem;font-size:.7rem;color:var(--color-text-faint);font-weight:600;letter-spacing:.05em">t = 0.0 (deterministic)</td></tr>`;
+  el.innerHTML=`<table style="width:100%;border-collapse:collapse;border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden">
+    <thead><tr style="background:var(--color-surface-offset)">
+      ${['Config','t','Seed 1','Seed 2','Seed 3','Mean ± SE'].map(h=>`<th style="${thStyle}">${h}</th>`).join('')}
+    </tr></thead><tbody>${header}${rows}</tbody></table>
+    <p style="font-size:.72rem;color:var(--color-text-faint);margin-top:.5rem">Highlighted = SE ≥ 0.030; single-seed margins here are statistically unreliable.</p>`;
+}
+
+function buildLangFilterTable(){
+  const el=document.getElementById('lang-filter-table');if(!el)return;
+  const thStyle='padding:.45rem .625rem;text-align:left;font-size:.68rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase';
+  const rows=LANG_FILTER.data.map(r=>{
+    const isHEnt=r.strategy==='high_entropy';
+    return`<tr>
+      <td style="padding:.45rem .625rem;font-family:var(--font-mono);font-size:.78rem">${strategyDot(r.strategy)}</td>
+      <td style="padding:.45rem .625rem;font-size:.78rem;color:var(--color-text-muted)">${r.steps}</td>
+      <td style="padding:.45rem .625rem;font-size:.78rem;color:var(--color-text-muted)">${r.t0}%</td>
+      <td style="padding:.45rem .625rem;font-size:.78rem;color:var(--color-text-muted)">${r.t1}%</td>
+      <td style="padding:.45rem .625rem;font-size:.78rem;color:var(--color-text-muted)">${r.t25}%</td>
+      <td style="padding:.45rem .625rem;font-size:.78rem;${isHEnt?'color:var(--color-error);font-weight:600':'color:var(--color-text-muted)'}">${r.t5}%</td>
+    </tr>`;
+  }).join('');
+  // LM1B comparison rows — Table 19 (tab:filter_lm1b, t=0.0/0.1/0.25/0.5 averaged across steps)
+  const lm1bSepRow=`<tr><td colspan="6" style="padding:.3rem .625rem;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--color-surface-offset);color:var(--color-text-faint);border-top:2px solid var(--color-border)">LM1B Corpus (Table 19) — near-perfect acceptance confirms OWT drops are language leakage</td></tr>`;
+  const lm1bRows=[
+    {strategy:'none',    t0:99.5,t1:99.1,t25:98.8,t5:98.5},
+    {strategy:'high_entropy',t0:99.3,t1:98.7,t25:98.4,t5:98.1}
+  ].map(r=>`<tr style="background:color-mix(in oklch,var(--color-success) 4%,transparent)">
+      <td style="padding:.45rem .625rem;font-family:var(--font-mono);font-size:.78rem">${strategyDot(r.strategy)}</td>
+      <td style="padding:.45rem .625rem;font-size:.78rem;color:var(--color-text-muted)">avg</td>
+      <td style="padding:.45rem .625rem;font-size:.78rem;color:var(--color-success);font-weight:600">${r.t0}%</td>
+      <td style="padding:.45rem .625rem;font-size:.78rem;color:var(--color-success);font-weight:600">${r.t1}%</td>
+      <td style="padding:.45rem .625rem;font-size:.78rem;color:var(--color-success);font-weight:600">${r.t25}%</td>
+      <td style="padding:.45rem .625rem;font-size:.78rem;color:var(--color-success);font-weight:600">${r.t5}%</td>
+    </tr>`).join('');
+  el.innerHTML=`<table style="width:100%;border-collapse:collapse;border:1px solid var(--color-border);border-radius:var(--radius-md);overflow:hidden">
+    <thead><tr style="background:var(--color-surface-offset)">
+      ${['Strategy','Steps','t=0.0','t=0.1','t=0.25','t=0.5 ⚠'].map(h=>`<th style="${thStyle}">${h}</th>`).join('')}
+    </tr></thead><tbody>${rows}${lm1bSepRow}${lm1bRows}</tbody></table>
+    <p style="font-size:.72rem;color:var(--color-text-faint);margin-top:.5rem">OWT rows: ranges reflect variation across 64/128/256 steps; t=0.5 in red = lowest acceptance (min 90%). LM1B rows (green): near-perfect acceptance (≥98.1%) across all temperatures confirms that OWT acceptance drops are due to language leakage, not random noise.</p>`;
+}
+
+function renderMethodology(){
+  methoRendered=true;
+  const grid=document.getElementById('protocol-grid');if(!grid)return;
+  grid.innerHTML=PROTOCOLS.map((p,i)=>`
+    <div class="protocol-card" onclick="toggleProtocol(this)" tabindex="0" role="button" aria-expanded="false">
+      <div class="protocol-card-head">
+        <div class="protocol-icon" style="background:${p.color}18;color:${p.color}"><i data-lucide="${p.icon}" style="width:15px;height:15px"></i></div>
+        <div class="protocol-title">${p.title}</div>
+      </div>
+      <div class="protocol-problem">${p.problem}</div>
+      <div class="protocol-detail">${p.detail}</div>
+    </div>`).join('');
+  lucide.createIcons();
+  // Scroll-triggered reveal
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const prefersReduced=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+        if(prefersReduced){e.target.classList.add('visible');}
+        else{setTimeout(()=>e.target.classList.add('visible'),Array.from(grid.children).indexOf(e.target)*80);}
+        obs.unobserve(e.target);
+      }
+    });
+  },{threshold:.15});
+  grid.querySelectorAll('.protocol-card').forEach(c=>obs.observe(c));
+  // Table data for methodology sections
+  buildThreeSeedTable();
+  buildLangFilterTable();
+}
+
+function toggleProtocol(card){
+  card.classList.toggle('open');
+  card.setAttribute('aria-expanded',card.classList.contains('open'));
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   SUBMIT — JSON VIEWER
+   ════════════════════════════════════════════════════════════════════════ */
+const JSON_SECTIONS={
+  submission_metadata:`  "care_version": "1.0.0",
+  "submission_date": "2026-04-25",
+  "submitter": "Anonymous",
+  "paper_title": "",
+  "paper_url": "[PLACEHOLDER]",
+  "code_url": "[PLACEHOLDER]"`,
+  model:`  "name": "my-diffusion-lm",
+  "family": "mdlm",
+  "architecture": "masked",
+  "backbone": "LLaDA-8B-Base",
+  "checkpoint_id": "path-or-hf-model-id",
+  "parameter_count_B": 8.0,
+  "license": "apache-2.0"`,
+  strategy:`  "name": "my_remasking_strategy",
+  "type": "informed",
+  "description": "One-sentence description",
+  "extra_forward_pass_per_step": true,
+  "remasking_fraction": 0.15`,
+  evaluation:`  "tasks": [{"name":"openwebtext_prefix","prefix_tokens":64,"generate_tokens":128}],
+  "steps_sweep": [64, 128, 256],
+  "unmask_temp_sweep": [0.0, 0.1, 0.25, 0.5],
+  "seeds": [42, 43, 44],
+  "harness_commit": "care-eval@v1.0.0"`,
+  hardware:`  "gpu_type": "A100-80GB",
+  "num_gpus": 1,
+  "cuda_version": "12.2",
+  "torch_version": "2.3.0"`,
+  reproducibility:`  "deterministic": false,
+  "random_seed": 42,
+  "notes": "git clone ... && pip install -e . && care-eval run --config this_file.json"`,
+  artifacts:`  "raw_outputs_path": "outputs/",
+  "metrics_path": "metrics.json",
+  "submission_bundle": "submission.json"`
+};
+
+function buildJsonViewer(){
+  const el=document.getElementById('json-viewer');if(!el)return;
+  el.innerHTML=Object.entries(JSON_SECTIONS).map(([k,v])=>`
+    <div class="json-section">
+      <div class="json-section-header" onclick="toggleJsonSection(this)" tabindex="0" role="button" aria-expanded="false">
+        <span>"${k}": {</span><i data-lucide="chevron-right" style="width:13px;height:13px;transition:transform .15s"></i>
+      </div>
+      <div class="json-section-body">${v.replace(/\[PLACEHOLDER\]/g,'<span class="badge b-placeholder">[PLACEHOLDER]</span>')}</div>
+    </div>`).join('');
+  lucide.createIcons();
+}
+
+function toggleJsonSection(header){
+  const body=header.nextElementSibling;
+  const open=body.classList.toggle('open');
+  header.setAttribute('aria-expanded',open);
+  const icon=header.querySelector('[data-lucide]');
+  if(icon)icon.style.transform=open?'rotate(90deg)':'';
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   COMPARE MODE
+   ════════════════════════════════════════════════════════════════════════ */
+function toggleRowSelect(row){
+  const idx=selectedRows.findIndex(r=>r.id===row.id);
+  if(idx>-1)selectedRows.splice(idx,1);
+  else if(selectedRows.length<4)selectedRows.push(row);
+  updateCompareBar();
+}
+function updateCompareBar(){
+  const bar=document.getElementById('compare-bar');
+  const n=selectedRows.length;
+  document.getElementById('compare-count').textContent=`${n} selected`;
+  bar.classList.toggle('show',n>=2);
+}
+function clearCompare(){selectedRows=[];table&&table.deselectRow();updateCompareBar();}
+function openCompareModal(){
+  const content=document.getElementById('modal-content');
+  const radarData=selectedRows.map(r=>{
+    const d=normalizeForRadar(r);
+    return{label:`${r.strategy}@${r.steps} t=${r.temp}`,color:STRATEGY_COLORS[r.strategy]||'#999',data:Object.values(d)};
+  });
+  const canvas=`<canvas id="modal-radar" style="max-height:320px" aria-label="Comparison radar chart"></canvas>`;
+  const deltaRows=selectedRows.map(r=>`<tr><td style="padding:.35rem .5rem;font-family:var(--font-mono)">${r.strategy}</td><td>${r.steps}</td><td>${r.temp}</td><td class="${r.mauve>=.95?'cell-best-mauve':''}">${r.mauve.toFixed(3)}</td><td class="${r.ppl&&r.ppl<=7?'cell-best-ppl':''}">${r.ppl?.toFixed(1)||'—'}</td><td style="font-family:var(--font-mono)">${r.actual_nfe}</td></tr>`).join('');
+  const table2=`<table style="width:100%;border-collapse:collapse;font-size:.8rem;margin-top:1rem"><thead><tr style="background:var(--color-surface-offset)"><th style="padding:.35rem .5rem;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--color-text-faint)">Strategy</th><th style="padding:.35rem .5rem;text-align:left;font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--color-text-faint)">Steps</th><th>t</th><th>MAUVE</th><th>PPL</th><th>NFE</th></tr></thead><tbody>${deltaRows}</tbody></table>`;
+  content.innerHTML=canvas+table2;
+  document.getElementById('modal-overlay').classList.add('show');
+  const c=getChartColors();
+  const ctx=document.getElementById('modal-radar').getContext('2d');
+  new Chart(ctx,{type:'radar',data:{labels:RADAR_AXES,datasets:radarData.map(d=>({label:d.label,data:d.data,borderColor:d.color,backgroundColor:d.color+'18',borderWidth:2,pointBackgroundColor:d.color,pointRadius:3}))},
+    options:{responsive:true,plugins:{legend:{labels:{color:c.label,font:{size:10},boxWidth:10}}},scales:{r:{min:0,max:1,ticks:{stepSize:.25,color:c.tick,backdropColor:'transparent',font:{size:9}},grid:{color:c.grid},angleLines:{color:c.grid},pointLabels:{color:c.label,font:{size:10}}}}}});
+}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('show');}
+
+/* ════════════════════════════════════════════════════════════════════════
+   ANIME.JS HERO ANIMATIONS
+   ════════════════════════════════════════════════════════════════════════ */
+function runHeroAnimations(){
+  const prefersReduced=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(prefersReduced)return;
+  document.querySelectorAll('.hero-counter').forEach((el,i)=>{
+    const target=parseFloat(el.dataset.target);const suffix=el.dataset.suffix||'';
+    const obj={val:0};
+    anime({targets:obj,val:target,delay:i*150,duration:1200,easing:'easeOutExpo',
+      update(){el.textContent=Math.round(obj.val)+suffix;},
+      complete(){el.textContent=target+suffix;}});
+  });
+  anime({targets:'.hero-card.key-finding',
+    boxShadow:['0 0 0 0 rgba(192,57,43,0)','0 0 0 8px rgba(192,57,43,.22)','0 0 0 0 rgba(192,57,43,0)'],
+    delay:900,duration:1600,easing:'easeOutQuad'});
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   FIGURE LIGHTBOX
+   ════════════════════════════════════════════════════════════════════════ */
+let lbZoom=1;
+const LB_ZOOM_STEP=0.5,LB_ZOOM_MAX=4,LB_ZOOM_MIN=0.5;
+
+function openLightbox(src,title,caption){
+  const lb=document.getElementById('fig-lightbox');
+  const img=document.getElementById('lb-img');
+  img.src=src;
+  img.alt=title||'';
+  document.getElementById('lb-title').textContent=title||'';
+  document.getElementById('lb-caption').textContent=caption||'';
+  document.getElementById('lb-caption').classList.remove('expanded');
+  lbZoom=1;
+  img.style.transform='scale(1)';
+  document.getElementById('lb-zoom-label').textContent='1×';
+  document.getElementById('lb-img-outer').classList.remove('zoomed');
+  lb.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeLightbox(){
+  document.getElementById('fig-lightbox').classList.remove('open');
+  document.body.style.overflow='';
+  // clear src after transition so it doesn't flash
+  setTimeout(()=>{
+    if(!document.getElementById('fig-lightbox').classList.contains('open'))
+      document.getElementById('lb-img').src='';
+  },300);
+}
+
+function lbSetZoom(z){
+  lbZoom=Math.min(LB_ZOOM_MAX,Math.max(LB_ZOOM_MIN,z));
+  document.getElementById('lb-img').style.transform=`scale(${lbZoom})`;
+  document.getElementById('lb-zoom-label').textContent=lbZoom.toFixed(1).replace('.0','')+'×';
+  document.getElementById('lb-img-outer').classList.toggle('zoomed',lbZoom>1);
+}
+function lbZoomIn(){lbSetZoom(lbZoom+LB_ZOOM_STEP);}
+function lbZoomOut(){lbSetZoom(lbZoom-LB_ZOOM_STEP);}
+function lbZoomReset(){lbSetZoom(1);}
+
+// Click backdrop to close
+document.addEventListener('click',e=>{
+  const lb=document.getElementById('fig-lightbox');
+  if(lb.classList.contains('open')&&e.target===lb)closeLightbox();
+});
+
+// ESC to close
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeLightbox();
+});
+
+// Scroll-to-zoom inside lightbox
+document.getElementById('fig-lightbox')?.addEventListener('wheel',e=>{
+  if(!document.getElementById('fig-lightbox').classList.contains('open'))return;
+  e.preventDefault();
+  lbSetZoom(lbZoom+(e.deltaY<0?LB_ZOOM_STEP:-LB_ZOOM_STEP));
+},{passive:false});
+
+// Event delegation — click any fig-card to open lightbox
+document.addEventListener('click',e=>{
+  const card=e.target.closest('.fig-card');
+  if(!card)return;
+  if(e.target.closest('.fig-interactive'))return; // let tab-switch buttons pass through
+  // find image: either .fig-card-img directly or inside .fig-img-fixed
+  const img=card.querySelector('img');
+  if(!img)return;
+  const title=card.querySelector('.fig-title')?.textContent||'';
+  const caption=card.querySelector('.fig-caption')?.textContent||'';
+  openLightbox(img.src,title,caption);
+});
+
+/* ════════════════════════════════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  lucide.createIcons();
+  initTable();
+  buildRadar();
+  runHeroAnimations();
+  buildJsonViewer();
+  updateFilterSummary();
+  // Cross-model leaderboard summary (Tables 11 & 20) — rendered at init so visible without tab switch
+  buildCareLeaderboard();
+});
+</script>
+</body>
+</html>
