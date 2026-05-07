@@ -661,10 +661,10 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
         <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">coming soon</span></p>
       </div>
       <div class="model-panel" id="llada-downstream">
-        <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">GSM8K accuracy (%) — LLaDA-8B-Instruct, 4-shot, n=200, SE≈3.5%. No significant differences across configurations confirm NFE confounds extend to code generation (Table 17).</p>
+        <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">GSM8K accuracy (%) — LLaDA-8B-Instruct, 4-shot, n=200, SE≈3.5%. No significant differences across configurations confirm NFE confounds extend to code generation (Table 18).</p>
         <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="gsm8k-table"></table></div>
         <div style="margin-top:1.25rem">
-          <div style="font-size:.82rem;font-weight:600;color:var(--color-text);margin-bottom:.375rem">HumanEval pass@1 (%) — Table 10</div>
+          <div style="font-size:.82rem;font-weight:600;color:var(--color-text);margin-bottom:.375rem">HumanEval pass@1 (%) — Table 11</div>
           <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.625rem">n=100, 3-seed mean±SE via lm-eval. Nominal-step comparison favors high_entropy (31.7 vs 28.3), but at matched NFE=437 the compute-matched none* achieves 32.0 — <strong style="color:var(--color-error)">reversing the ranking</strong>. The NFE confound extends to code generation.</p>
           <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="humaneval-table"></table></div>
           <p style="font-size:.72rem;color:var(--color-text-faint);margin-top:.375rem">* none adjusted to higher nominal steps to match NFE=437. Highlighted = highest pass@1 per block.</p>
@@ -1200,16 +1200,16 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
       </table>
     </div>
   </div>
-  <!-- Three-Seed Reproducibility — Table 12 -->
+  <!-- Three-Seed Reproducibility — Table 13 -->
   <div style="margin-top:2rem">
-    <div class="sec-title" style="font-size:1rem;margin-bottom:.375rem">Three-Seed Reproducibility (Table 12)</div>
+    <div class="sec-title" style="font-size:1rem;margin-bottom:.375rem">Three-Seed Reproducibility (Table 13)</div>
     <p style="font-size:.83rem;color:var(--color-text-muted);margin-bottom:.875rem">MAUVE across 3 independent seeds. Highlighted rows (SE ≥ 0.030) show where single-seed conclusions are unreliable — directly motivating Protocol 6 (Report Uncertainty).</p>
     <div style="overflow-x:auto" id="three-seed-table"></div>
   </div>
   <!-- Language Filter Acceptance Rates — Table 19 -->
   <div style="margin-top:2rem">
-    <div class="sec-title" style="font-size:1rem;margin-bottom:.375rem">Language Filter Acceptance Rates — OWT (Table 18)</div>
-    <p style="font-size:.83rem;color:var(--color-text-muted);margin-bottom:.875rem">Acceptance rates (%) after applying the CARE language filter (ASCII ≥ 0.85, CJK ≤ 0.02). High stochasticity + aggressive remasking produces the most off-target language — dropping to 90% acceptance at t=0.5. LM1B stays 98%+ throughout, confirming the filter detects real multilingual leakage rather than noise (Table 19).</p>
+    <div class="sec-title" style="font-size:1rem;margin-bottom:.375rem">Language Filter Acceptance Rates — OWT (Table 19)</div>
+    <p style="font-size:.83rem;color:var(--color-text-muted);margin-bottom:.875rem">Acceptance rates (%) after applying the CARE language filter (ASCII ≥ 0.85, CJK ≤ 0.02). High stochasticity + aggressive remasking produces the most off-target language — dropping to 90% acceptance at t=0.5. LM1B stays 98%+ throughout, confirming the filter detects real multilingual leakage rather than noise (Table 20).</p>
     <div style="overflow-x:auto" id="lang-filter-table"></div>
   </div>
 </div>
@@ -1583,7 +1583,7 @@ const REMASK_ABLATION={model:"LLaDA-8B-Base",strategy:"high_entropy",steps:256,t
   {fraction:0.30, label:"30%",          mauve:0.482,ppl:27.1,distinct3:0.850,remasks:531}
 ]};
 
-/* ── THREE_SEED — Table 12: Three-seed MAUVE reproducibility ─────────── */
+/* ── THREE_SEED — Table 13: Three-seed MAUVE reproducibility ─────────── */
 const THREE_SEED={model:"LLaDA-8B-Base",data:[
   {config:"none@128", t:0.0,  s1:0.601,s2:0.645,s3:0.651,mean:0.632,se:0.016},
   {config:"none@256", t:0.0,  s1:0.645,s2:0.684,s3:0.628,mean:0.652,se:0.017},
@@ -1595,7 +1595,7 @@ const THREE_SEED={model:"LLaDA-8B-Base",data:[
   {config:"h_ent@256",t:0.25, s1:0.602,s2:0.682,s3:0.671,mean:0.652,se:0.025}
 ]};
 
-/* ── GSM8K — Table 17: Downstream GSM8K accuracy (%) ────────────────── */
+/* ── GSM8K — Table 18: Downstream GSM8K accuracy (%) ────────────────── */
 const GSM8K={model:"LLaDA-8B-Instruct",task:"GSM8K",shots:4,n:200,data:[
   {strategy:"none",         steps:128,t0:61.5,t1:64.0},
   {strategy:"none",         steps:256,t0:62.0,t1:60.5},
@@ -1603,14 +1603,14 @@ const GSM8K={model:"LLaDA-8B-Instruct",task:"GSM8K",shots:4,n:200,data:[
   {strategy:"high_entropy", steps:256,t0:56.0,t1:62.5}
 ]};
 
-/* ── LANG_FILTER — Table 18: OWT acceptance rates (%) ───────────────── */
+/* ── LANG_FILTER — Table 19: OWT acceptance rates (%) ───────────────── */
 const LANG_FILTER={corpus:"OWT",note:"filter: ASCII≥0.85, CJK≤0.02",data:[
   {strategy:"none",         steps:"64/128/256",t0:"99.6",t1:"98.0–98.4",t25:"96.8–97.2",t5:"96.0–97.6"},
   {strategy:"random",       steps:"64/128/256",t0:"99.6",t1:"95.6–98.0",t25:"94.8–97.6",t5:"95.6–98.4"},
   {strategy:"high_entropy", steps:"64/128/256",t0:"99.6",t1:"94.0–96.4",t25:"94.0–94.4",t5:"90.0–93.2"}
 ]};
 
-/* ── HUMANEVAL — Table 10: HumanEval pass@1 (%), LLaDA-8B-Base ──────── */
+/* ── HUMANEVAL — Table 11: HumanEval pass@1 (%), LLaDA-8B-Base ──────── */
 const HUMANEVAL={model:"LLaDA-8B-Base",task:"HumanEval",n:100,note:"3-seed mean±SE; compute-matched block reverses nominal-step ranking",data:[
   {block:"Nominal-step (unequal NFE)",strategy:"none",            nominal_steps:256,actual_nfe:128, t0:"28.3±0.3",t1:"24.7±0.3"},
   {block:"Nominal-step (unequal NFE)",strategy:"high_entropy",   nominal_steps:256,actual_nfe:437, t0:"31.7±0.3",t1:"28.0±0.6"},
@@ -1644,7 +1644,7 @@ const COMPUTE_MATCHED={model:"LLaDA-8B-Base",t:0.0,note:"English-filtered, 3-see
   {nfe:512,strategy:"high_entropy", ppl:20.4,mauve:0.557,delta:-0.114}
 ]};
 
-/* ── CARE_LEADERBOARD — Tables 11+20: Cross-model summary ────────────── */
+/* ── CARE_LEADERBOARD — Tables 12+21: Cross-model summary ────────────── */
 /* fConfirmed=false → foundation model pending verification, shown with ? marker */
 const CARE_LEADERBOARD={note:"256 nominal steps, English-filtered, OWT prefix=64, gen=128, t=0.25",data:[
   /* Tier 1 */
@@ -2372,7 +2372,7 @@ function buildComputeMatchedTable(){
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   CARE CROSS-MODEL LEADERBOARD  (Tables 11+20)
+   CARE CROSS-MODEL LEADERBOARD  (Tables 12+21)
    ════════════════════════════════════════════════════════════════════════ */
 /* ── CARE cross-model summary — state ───────────────────────────────── */
 let careSortKey='gap';
@@ -2756,8 +2756,8 @@ function buildLangFilterTable(){
       <td style="padding:.45rem .625rem;font-size:.78rem;${isHEnt?'color:var(--color-error);font-weight:600':'color:var(--color-text-muted)'}">${r.t5}%</td>
     </tr>`;
   }).join('');
-  // LM1B comparison rows — Table 19 (tab:filter_lm1b, t=0.0/0.1/0.25/0.5 averaged across steps)
-  const lm1bSepRow=`<tr><td colspan="6" style="padding:.3rem .625rem;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--color-surface-offset);color:var(--color-text-faint);border-top:2px solid var(--color-border)">LM1B Corpus (Table 19) — near-perfect acceptance confirms OWT drops are language leakage</td></tr>`;
+  // LM1B comparison rows — Table 20 (tab:filter_lm1b, t=0.0/0.1/0.25/0.5 averaged across steps)
+  const lm1bSepRow=`<tr><td colspan="6" style="padding:.3rem .625rem;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;background:var(--color-surface-offset);color:var(--color-text-faint);border-top:2px solid var(--color-border)">LM1B Corpus (Table 20) — near-perfect acceptance confirms OWT drops are language leakage</td></tr>`;
   const lm1bRows=[
     {strategy:'none',    t0:99.5,t1:99.1,t25:98.8,t5:98.5},
     {strategy:'high_entropy',t0:99.3,t1:98.7,t25:98.4,t5:98.1}
