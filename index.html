@@ -1136,7 +1136,7 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     <div class="model-card-header">
       <div>
         <div class="model-card-title">BERT-Chat</div>
-        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">150M params</span><span style="color:var(--color-text-faint)">BERT-base <em>(unconfirmed)</em></span></div>
+        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">150M params</span><span style="color:var(--color-text-faint)">ModernBERT-base · MDLM SFT (dLLM framework)</span></div>
       </div>
     </div>
     <div class="model-tabs">
@@ -1147,8 +1147,8 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     </div>
     <div class="model-body">
       <div class="model-panel active" id="bertchat-overview">
-        <div class="stat-highlight">Smallest model in CARE at 150M params: MAUVE 0.418 reflects encoder-based architecture limits. Remasking confound (gap=0.135) persists even at this scale and architecture type.</div>
-        <p style="font-size:.83rem;color:var(--color-text-muted)">HumanEval 0.8 pass@1. Provides architecture diversity baseline: confirms the CARE confound appears in BERT-style masked LMs, not only decoder-based dLLMs. Encoder-based architectures are not well-suited for open-ended generation.</p>
+        <div class="stat-highlight">Smallest model in CARE at 150M params: MAUVE 0.418 reflects scale limits. Remasking confound (gap=0.135) persists even at this scale and architecture type.</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">ModernBERT-base-chat-v0.1 — SFT-ed directly on ModernBERT-base via MDLM without generative pretraining (dLLM framework, Zhou et al. 2025). HumanEval 0.8 pass@1. Provides architecture diversity baseline: the CARE stochasticity confound appears in modernized encoder-based masked LMs, not only decoder-based dLLMs.</p>
       </div>
       <div class="model-panel" id="bertchat-results">
         <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">CARE Tier 2 results — 256 nominal steps, English-filtered OWT, t=0.25.</p>
@@ -1161,7 +1161,8 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
           <li>🌱 Seeds: 3</li>
           <li>💻 Hardware: NVIDIA A10 / A6000 (150M requires minimal VRAM)</li>
           <li>📊 Metrics: MAUVE, PPL, HumanEval pass@1</li>
-          <li>⚠️ BERT-architecture: encoder-based — generation is autoregressive over mask positions</li>
+          <li>🏗️ ModernBERT-base (149M) SFT-ed with MDLM on tulu-3-sft-mixture + smoltalk</li>
+          <li>⚠️ Encoder-based: no generative pretraining step — MDLM SFT applied directly to base checkpoint</li>
         </ul>
       </div>
       <div class="model-panel" id="bertchat-reproduce">
@@ -1659,7 +1660,7 @@ const CARE_LEADERBOARD={note:"256 nominal steps, English-filtered, OWT prefix=64
   {tier:2,type:"dLLM",foundation:"LLaMA-2-7B",      fConfirmed:true,  model:"DiffuLLaMA-7B",    scale:"7B",   ppl_none:26.4,mauve_none:0.872,ppl_hent:22.6,mauve_hent:0.617,gap:0.255,he:21.0,note:""},
   {tier:2,type:"dLLM",foundation:"Qwen2.5-Coder-7B",fConfirmed:true,  model:"Dream-Coder-7B",   scale:"7B",   ppl_none:27.1,mauve_none:0.886,ppl_hent:23.4,mauve_hent:0.742,gap:0.144,he:34.0,note:""},
   {tier:2,type:"dLLM",foundation:"Qwen2.5-7B",      fConfirmed:true,  model:"SM-Dream-7B",      scale:"7B",   ppl_none:24.7,mauve_none:0.913,ppl_hent:21.6,mauve_hent:0.823,gap:0.090,he:29.5,note:"SM=Soft-Masked"},
-  {tier:2,type:"dLLM",foundation:"BERT-base",        fConfirmed:false, model:"BERT-Chat",        scale:"150M", ppl_none:45.5,mauve_none:0.418,ppl_hent:41.2,mauve_hent:0.283,gap:0.135,he:0.8, note:""},
+  {tier:2,type:"dLLM",foundation:"ModernBERT-base",   fConfirmed:true,  model:"BERT-Chat",        scale:"150M", ppl_none:45.5,mauve_none:0.418,ppl_hent:41.2,mauve_hent:0.283,gap:0.135,he:0.8, note:"ModernBERT-base-chat-v0.1"},
   /* AR Reference */
   {tier:0,type:"AR",  foundation:"GPT-2-XL",         fConfirmed:true,  model:"GPT-2-XL (p=0.95)",scale:"1.5B",ppl_none:14.1,mauve_none:0.742,ppl_hent:null,mauve_hent:null,gap:null,he:null,note:"AR baseline"}
 ]};
