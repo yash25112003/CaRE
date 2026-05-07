@@ -339,7 +339,7 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     <button class="nav-tab"        role="tab" aria-selected="false" onclick="showTab('submit')"         >Submit</button>
   </div>
   <div class="nav-actions">
-    <a href="#" class="btn-icon" title="GitHub (placeholder)" aria-label="GitHub repository">
+    <a href="#" class="btn-icon" title="GitHub — coming soon" aria-label="GitHub repository">
       <i data-lucide="github" style="width:15px;height:15px;"></i>
     </a>
     <button class="btn-icon" onclick="toggleTheme()" aria-label="Toggle dark/light mode" title="Toggle theme">
@@ -357,8 +357,8 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     <p class="hero-body">Seven remasking papers. Contradictory conclusions. CARE reveals why — and which strategies actually win under controlled compute, metric, and stochasticity conditions.</p>
     <div class="hero-ctas">
       <button class="btn btn-primary" onclick="showTab('overview')"><i data-lucide="table-2" style="width:14px;height:14px;"></i>Explore Results</button>
-      <a href="#" class="btn btn-secondary"><i data-lucide="github" style="width:14px;height:14px;"></i>Run Locally <span class="badge b-placeholder" style="margin-left:.25rem">[PLACEHOLDER]</span></a>
-      <a href="#" class="btn btn-ghost"><i data-lucide="file-text" style="width:14px;height:14px;"></i>Read Paper <span class="badge b-placeholder" style="margin-left:.25rem">[PLACEHOLDER]</span></a>
+      <a href="#" class="btn btn-secondary"><i data-lucide="github" style="width:14px;height:14px;"></i>Run Locally <span class="badge b-placeholder" style="margin-left:.25rem">coming soon</span></a>
+      <a href="#" class="btn btn-ghost"><i data-lucide="file-text" style="width:14px;height:14px;"></i>Read Paper <span class="badge b-placeholder" style="margin-left:.25rem">coming soon</span></a>
     </div>
   </div>
   <div>
@@ -602,21 +602,28 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
 <!-- ── TAB: DEEP DIVE ─────────────────────────────────────────────────────── -->
 <div id="tab-deepdive" class="tab-panel" role="tabpanel" aria-label="Model Deep-Dive">
   <h2 class="sec-title">Model Deep-Dive</h2>
-  <p class="sec-sub">Per-model results, configs, and reproduction commands.</p>
+  <p class="sec-sub">Per-model results, configs, and reproduction commands — all 12 evaluated models.</p>
 
-  <!-- LLaDA-8B -->
+  <!-- ── TIER 1 ───────────────────────────────────────────────────────────── -->
+  <div style="display:flex;align-items:center;gap:.75rem;margin:.5rem 0 1.25rem">
+    <span style="flex:1;height:1px;background:var(--color-border)"></span>
+    <span style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--color-primary)">Tier 1 — Primary Evaluation</span>
+    <span style="flex:1;height:1px;background:var(--color-border)"></span>
+  </div>
+
+  <!-- LLaDA-8B-Base (full detail card) -->
   <div class="model-card">
     <div class="model-card-header">
       <div>
         <div class="model-card-title">LLaDA-8B-Base</div>
         <div class="model-card-meta">
           <span class="badge b-verified">Dense</span><span class="badge b-verified">8B params</span><span class="badge b-verified">Open weights</span>
-          <span style="color:var(--color-text-faint)">Masked Diffusion LM</span>
+          <span style="color:var(--color-text-faint)">Masked Diffusion LM · LLaMA-3-8B</span>
         </div>
       </div>
       <div style="display:flex;gap:.5rem;font-size:.78rem">
-        <a href="#" class="btn btn-ghost" style="padding:.3rem .625rem;font-size:.75rem">Paper <span class="badge b-placeholder">[PLACEHOLDER]</span></a>
-        <a href="#" class="btn btn-ghost" style="padding:.3rem .625rem;font-size:.75rem">HF Model <span class="badge b-placeholder">[PLACEHOLDER]</span></a>
+        <a href="#" class="btn btn-ghost" style="padding:.3rem .625rem;font-size:.75rem">Paper <span class="badge b-placeholder">coming soon</span></a>
+        <a href="#" class="btn btn-ghost" style="padding:.3rem .625rem;font-size:.75rem">HF Model <span class="badge b-placeholder">coming soon</span></a>
       </div>
     </div>
     <div class="model-tabs">
@@ -652,7 +659,7 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     --unmask_temp 0.0 0.1 0.25 0.5 \
     --seeds 3 \
     --tasks openwebtext_prefix</pre>
-        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">[PLACEHOLDER — install pending]</span></p>
+        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">coming soon</span></p>
       </div>
       <div class="model-panel" id="llada-downstream">
         <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">GSM8K accuracy (%) — LLaDA-8B-Instruct, 4-shot, n=200, SE≈3.5%. No significant differences across configurations confirm NFE confounds extend to code generation (Table 17).</p>
@@ -667,51 +674,510 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     </div>
   </div>
 
-  <!-- LLaDA-MoE -->
+  <!-- LLaDA-8B-Instruct -->
+  <div class="model-card">
+    <div class="model-card-header">
+      <div>
+        <div class="model-card-title">LLaDA-8B-Instruct</div>
+        <div class="model-card-meta"><span class="badge b-verified">Dense</span><span class="badge b-verified">8B params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">Instruction-tuned · LLaMA-3-8B</span></div>
+      </div>
+    </div>
+    <div class="model-tabs">
+      <button class="model-tab active" onclick="switchModelTab('llada_inst','overview')">Overview</button>
+      <button class="model-tab" onclick="switchModelTab('llada_inst','results')">Results</button>
+      <button class="model-tab" onclick="switchModelTab('llada_inst','config')">Config</button>
+      <button class="model-tab" onclick="switchModelTab('llada_inst','reproduce')">Reproduce</button>
+    </div>
+    <div class="model-body">
+      <div class="model-panel active" id="llada_inst-overview">
+        <div class="stat-highlight">Instruction tuning does <strong>not</strong> remove the stochasticity confound — MAUVE gap 0.287 (none vs. high_entropy) nearly matches the base model (0.296).</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">Highest HumanEval among LLaDA variants at 36.5 pass@1. MAUVE 0.928 under none@256, t=0.25. Confirms that instruction fine-tuning does not mitigate the remasking × stochasticity interaction identified in CARE.</p>
+      </div>
+      <div class="model-panel" id="llada_inst-results">
+        <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">CARE Tier 1 results — 256 nominal steps, English-filtered OWT, t=0.25.</p>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="llada_inst-results-table"></table></div>
+      </div>
+      <div class="model-panel" id="llada_inst-config">
+        <ul style="font-size:.82rem;color:var(--color-text-muted);line-height:1.9;list-style:none;padding:0">
+          <li>📋 Setup: 64-token OpenWebText prefix → generate 128 tokens</li>
+          <li>🔤 English filter: ASCII ≥ 0.85, CJK ≤ 0.02</li>
+          <li>🌱 Seeds: 3 (key comparisons), 1 (ablations)</li>
+          <li>💻 Hardware: NVIDIA A100 80GB</li>
+          <li>📊 Metrics: MAUVE, PPL (GPT-2 XL), Self-BLEU, Distinct-3, NFE</li>
+        </ul>
+      </div>
+      <div class="model-panel" id="llada_inst-reproduce">
+        <pre class="code-block">$ care-eval run \
+    --model llada-8b-instruct \
+    --strategy none high_entropy \
+    --steps 64 128 256 \
+    --unmask_temp 0.0 0.1 0.25 0.5 \
+    --seeds 3 \
+    --tasks openwebtext_prefix</pre>
+        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">coming soon</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LLaDA-1.5 -->
+  <div class="model-card">
+    <div class="model-card-header">
+      <div>
+        <div class="model-card-title">LLaDA-1.5</div>
+        <div class="model-card-meta"><span class="badge b-verified">Dense</span><span class="badge b-verified">8B params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">LLaMA-3.1-8B <em>(foundation unconfirmed)</em></span></div>
+      </div>
+    </div>
+    <div class="model-tabs">
+      <button class="model-tab active" onclick="switchModelTab('llada15','overview')">Overview</button>
+      <button class="model-tab" onclick="switchModelTab('llada15','results')">Results</button>
+      <button class="model-tab" onclick="switchModelTab('llada15','config')">Config</button>
+      <button class="model-tab" onclick="switchModelTab('llada15','reproduce')">Reproduce</button>
+    </div>
+    <div class="model-body">
+      <div class="model-panel active" id="llada15-overview">
+        <div class="stat-highlight">Best HumanEval in Tier 1 at <strong>38.0 pass@1</strong> — architecture improvements raise code performance while the stochasticity confound (gap=0.258) persists.</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">Updated LLaDA architecture. Improved MAUVE under none (0.939) and a modestly smaller gap vs. LLaDA-8B-Base (0.258 vs. 0.296). Foundation model listed as LLaMA-3.1-8B — not confirmed in public documentation.</p>
+      </div>
+      <div class="model-panel" id="llada15-results">
+        <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">CARE Tier 1 results — 256 nominal steps, English-filtered OWT, t=0.25.</p>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="llada15-results-table"></table></div>
+      </div>
+      <div class="model-panel" id="llada15-config">
+        <ul style="font-size:.82rem;color:var(--color-text-muted);line-height:1.9;list-style:none;padding:0">
+          <li>📋 Setup: 64-token OpenWebText prefix → generate 128 tokens</li>
+          <li>🔤 English filter: ASCII ≥ 0.85, CJK ≤ 0.02</li>
+          <li>🌱 Seeds: 3 (key comparisons), 1 (ablations)</li>
+          <li>💻 Hardware: NVIDIA A100 80GB</li>
+          <li>📊 Metrics: MAUVE, PPL (GPT-2 XL), Self-BLEU, Distinct-3, NFE</li>
+        </ul>
+      </div>
+      <div class="model-panel" id="llada15-reproduce">
+        <pre class="code-block">$ care-eval run \
+    --model llada-1.5 \
+    --strategy none high_entropy \
+    --steps 64 128 256 \
+    --unmask_temp 0.0 0.1 0.25 0.5 \
+    --seeds 3 \
+    --tasks openwebtext_prefix</pre>
+        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">coming soon</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LLaDA-MoE-A1B -->
   <div class="model-card">
     <div class="model-card-header">
       <div>
         <div class="model-card-title">LLaDA-MoE-7B-A1B</div>
-        <div class="model-card-meta"><span class="badge b-verified">MoE</span><span class="badge b-verified">~1B active params</span><span class="badge b-verified">Open weights</span></div>
+        <div class="model-card-meta"><span class="badge b-verified">MoE</span><span class="badge b-verified">~1B active params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">Custom MoE <em>(foundation unconfirmed)</em></span></div>
       </div>
     </div>
     <div class="model-tabs">
       <button class="model-tab active" onclick="switchModelTab('moe','overview')">Overview</button>
       <button class="model-tab" onclick="switchModelTab('moe','results')">Results</button>
+      <button class="model-tab" onclick="switchModelTab('moe','config')">Config</button>
+      <button class="model-tab" onclick="switchModelTab('moe','reproduce')">Reproduce</button>
     </div>
     <div class="model-body">
       <div class="model-panel active" id="moe-overview">
         <div class="stat-highlight">Cross-architecture validation: stochasticity replicates — <strong>+0.507 MAUVE</strong> at t=0.1 vs t=0.0 (none@256).</div>
-        <p style="font-size:.83rem;color:var(--color-text-muted)">Dense 8B vs MoE ~1B active — both models show the same stochasticity × remasking interaction pattern, confirming CARE findings are architecture-agnostic.</p>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">Dense 8B vs MoE ~1B active — both models show the same stochasticity × remasking interaction pattern, confirming CARE findings are architecture-agnostic. Results at t=0.1 (optimal for MoE). Foundation model not confirmed in public documentation.</p>
       </div>
       <div class="model-panel" id="moe-results">
         <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="moe-results-table"></table></div>
       </div>
+      <div class="model-panel" id="moe-config">
+        <ul style="font-size:.82rem;color:var(--color-text-muted);line-height:1.9;list-style:none;padding:0">
+          <li>📋 Setup: 64-token OpenWebText prefix → generate 128 tokens</li>
+          <li>🌡️ Temperature: t=0.1 (optimal for MoE architecture; Tier 1 results at t=0.1)</li>
+          <li>🔤 English filter: ASCII ≥ 0.85, CJK ≤ 0.02</li>
+          <li>🌱 Seeds: 1 (MoE ablation study)</li>
+          <li>💻 Hardware: NVIDIA A100 80GB</li>
+          <li>📊 Metrics: MAUVE (primary), PPL (secondary)</li>
+        </ul>
+      </div>
+      <div class="model-panel" id="moe-reproduce">
+        <pre class="code-block">$ care-eval run \
+    --model llada-moe-7b-a1b \
+    --strategy none high_entropy \
+    --steps 256 \
+    --unmask_temp 0.0 0.1 0.25 \
+    --seeds 1 \
+    --tasks openwebtext_prefix</pre>
+        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">coming soon</span></p>
+      </div>
     </div>
   </div>
 
-  <!-- Dream-7B -->
+  <!-- Dream-7B-Instruct -->
+  <div class="model-card">
+    <div class="model-card-header">
+      <div>
+        <div class="model-card-title">Dream-7B-Instruct</div>
+        <div class="model-card-meta"><span class="badge b-verified">Independent family</span><span class="badge b-verified">7B params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">Instruction-tuned · Qwen2.5-7B</span></div>
+      </div>
+    </div>
+    <div class="model-tabs">
+      <button class="model-tab active" onclick="switchModelTab('dream_inst','overview')">Overview</button>
+      <button class="model-tab" onclick="switchModelTab('dream_inst','results')">Results</button>
+      <button class="model-tab" onclick="switchModelTab('dream_inst','config')">Config</button>
+      <button class="model-tab" onclick="switchModelTab('dream_inst','reproduce')">Reproduce</button>
+    </div>
+    <div class="model-body">
+      <div class="model-panel active" id="dream_inst-overview">
+        <div class="stat-highlight">Small MAUVE gap of <strong>0.066</strong> — Dream-family robustness to the stochasticity confound carries over to the instruction-tuned variant.</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">HumanEval 31.0 pass@1. MAUVE 0.927 under none@256, t=0.25. Dream's architecture is inherently more robust to remasking strategy confounds — instruction tuning preserves this advantage while boosting code performance.</p>
+      </div>
+      <div class="model-panel" id="dream_inst-results">
+        <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">CARE Tier 1 results — 256 nominal steps, English-filtered OWT, t=0.25.</p>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="dream_inst-results-table"></table></div>
+      </div>
+      <div class="model-panel" id="dream_inst-config">
+        <ul style="font-size:.82rem;color:var(--color-text-muted);line-height:1.9;list-style:none;padding:0">
+          <li>📋 Setup: 64-token OpenWebText prefix → generate 128 tokens</li>
+          <li>🔤 English filter: ASCII ≥ 0.85, CJK ≤ 0.02</li>
+          <li>🌱 Seeds: 3 (key comparisons), 1 (ablations)</li>
+          <li>💻 Hardware: NVIDIA A100 80GB</li>
+          <li>📊 Metrics: MAUVE, PPL (GPT-2 XL), Self-BLEU, Distinct-3, NFE</li>
+          <li>🎯 Strategies: entropy, origin, maskgit (Dream-family naming)</li>
+        </ul>
+      </div>
+      <div class="model-panel" id="dream_inst-reproduce">
+        <pre class="code-block">$ care-eval run \
+    --model dream-7b-instruct \
+    --strategy entropy origin maskgit \
+    --steps 64 128 256 \
+    --unmask_temp 0.0 0.1 0.25 0.5 \
+    --seeds 3 \
+    --tasks openwebtext_prefix</pre>
+        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">coming soon</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dream-7B-Base -->
   <div class="model-card">
     <div class="model-card-header">
       <div>
         <div class="model-card-title">Dream-7B-Base</div>
-        <div class="model-card-meta"><span class="badge b-verified">Independent family</span><span class="badge b-verified">7B params</span><span class="badge b-verified">Open weights</span></div>
+        <div class="model-card-meta"><span class="badge b-verified">Independent family</span><span class="badge b-verified">7B params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">Qwen2.5-7B</span></div>
       </div>
     </div>
     <div class="model-tabs">
       <button class="model-tab active" onclick="switchModelTab('dream','overview')">Overview</button>
       <button class="model-tab" onclick="switchModelTab('dream','results')">Results</button>
+      <button class="model-tab" onclick="switchModelTab('dream','config')">Config</button>
+      <button class="model-tab" onclick="switchModelTab('dream','reproduce')">Reproduce</button>
     </div>
     <div class="model-body">
       <div class="model-panel active" id="dream-overview">
-        <div class="stat-highlight">Best strategy changes at every budget level — metric dependence is extreme on Dream.</div>
-        <p style="font-size:.83rem;color:var(--color-text-muted)">maskgit t=0 achieves best PPL but worst MAUVE consistently. entropy@128 t=0.0 achieves MAUVE=0.977 — the highest single result across all Dream configs.</p>
+        <div class="stat-highlight">Best strategy changes at every budget level — metric dependence is extreme on Dream. Smallest Tier 1 gap at <strong>0.034</strong>.</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">maskgit t=0 achieves best PPL but worst MAUVE consistently. entropy@128 t=0.0 achieves MAUVE=0.977 — the highest single result across all Dream configs. Dream's architecture is inherently more robust to remasking strategy confounds than LLaDA variants.</p>
       </div>
       <div class="model-panel" id="dream-results">
         <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="dream-results-table"></table></div>
       </div>
+      <div class="model-panel" id="dream-config">
+        <ul style="font-size:.82rem;color:var(--color-text-muted);line-height:1.9;list-style:none;padding:0">
+          <li>📋 Setup: 64-token OpenWebText prefix → generate 128 tokens</li>
+          <li>🔤 English filter: ASCII ≥ 0.85, CJK ≤ 0.02</li>
+          <li>🌱 Seeds: 3 (key comparisons), 1 (ablations)</li>
+          <li>💻 Hardware: NVIDIA A100 80GB</li>
+          <li>📊 Metrics: MAUVE, PPL (GPT-2 XL), Self-BLEU, Distinct-3, NFE</li>
+          <li>🎯 Strategies: entropy, origin, maskgit (Dream-family naming; entropy ≈ high_entropy)</li>
+        </ul>
+      </div>
+      <div class="model-panel" id="dream-reproduce">
+        <pre class="code-block">$ care-eval run \
+    --model dream-7b-base \
+    --strategy entropy origin maskgit \
+    --steps 64 128 256 \
+    --unmask_temp 0.0 0.1 0.25 0.5 \
+    --seeds 3 \
+    --tasks openwebtext_prefix</pre>
+        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">coming soon</span></p>
+      </div>
     </div>
   </div>
+
+  <!-- ── TIER 2 ───────────────────────────────────────────────────────────── -->
+  <div style="display:flex;align-items:center;gap:.75rem;margin:1.75rem 0 1.25rem">
+    <span style="flex:1;height:1px;background:var(--color-border)"></span>
+    <span style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--color-text-muted)">Tier 2 — Extended Coverage</span>
+    <span style="flex:1;height:1px;background:var(--color-border)"></span>
+  </div>
+
+  <!-- SM-Dream-7B -->
+  <div class="model-card">
+    <div class="model-card-header">
+      <div>
+        <div class="model-card-title">SM-Dream-7B</div>
+        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">7B params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">Soft-Masked variant · Qwen2.5-7B <em>(unconfirmed)</em></span></div>
+      </div>
+    </div>
+    <div class="model-tabs">
+      <button class="model-tab active" onclick="switchModelTab('smdream','overview')">Overview</button>
+      <button class="model-tab" onclick="switchModelTab('smdream','results')">Results</button>
+      <button class="model-tab" onclick="switchModelTab('smdream','config')">Config</button>
+      <button class="model-tab" onclick="switchModelTab('smdream','reproduce')">Reproduce</button>
+    </div>
+    <div class="model-body">
+      <div class="model-panel active" id="smdream-overview">
+        <div class="stat-highlight">Soft masking variant of Dream — gap of <strong>0.090</strong> is larger than Dream-7B-Base (0.034) but smaller than LLaDA variants, suggesting soft masking partially reduces stochasticity sensitivity.</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">MAUVE 0.913 (none) vs 0.823 (high_entropy) at t=0.25, 256 steps. HumanEval 29.5 pass@1. Evaluated as an architecture variant study — same base as Dream-7B but with soft token masking during training.</p>
+      </div>
+      <div class="model-panel" id="smdream-results">
+        <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">CARE Tier 2 results — 256 nominal steps, English-filtered OWT, t=0.25.</p>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="smdream-results-table"></table></div>
+      </div>
+      <div class="model-panel" id="smdream-config">
+        <ul style="font-size:.82rem;color:var(--color-text-muted);line-height:1.9;list-style:none;padding:0">
+          <li>📋 Setup: 64-token OpenWebText prefix → generate 128 tokens</li>
+          <li>🔤 English filter: ASCII ≥ 0.85, CJK ≤ 0.02</li>
+          <li>🌱 Seeds: 3</li>
+          <li>💻 Hardware: NVIDIA A100 80GB</li>
+          <li>📊 Metrics: MAUVE, PPL, HumanEval pass@1</li>
+        </ul>
+      </div>
+      <div class="model-panel" id="smdream-reproduce">
+        <pre class="code-block">$ care-eval run \
+    --model sm-dream-7b \
+    --strategy none high_entropy \
+    --steps 64 128 256 \
+    --unmask_temp 0.0 0.1 0.25 0.5 \
+    --seeds 3 \
+    --tasks openwebtext_prefix</pre>
+        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">coming soon</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dream-Coder-7B -->
+  <div class="model-card">
+    <div class="model-card-header">
+      <div>
+        <div class="model-card-title">Dream-Coder-7B</div>
+        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">7B params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">Code specialization · Qwen2.5-Coder-7B</span></div>
+      </div>
+    </div>
+    <div class="model-tabs">
+      <button class="model-tab active" onclick="switchModelTab('dreamcoder','overview')">Overview</button>
+      <button class="model-tab" onclick="switchModelTab('dreamcoder','results')">Results</button>
+      <button class="model-tab" onclick="switchModelTab('dreamcoder','config')">Config</button>
+      <button class="model-tab" onclick="switchModelTab('dreamcoder','reproduce')">Reproduce</button>
+    </div>
+    <div class="model-body">
+      <div class="model-panel active" id="dreamcoder-overview">
+        <div class="stat-highlight">Best HumanEval in Tier 2 at <strong>34.0 pass@1</strong> — code specialization pays off. Moderate gap (0.144) vs Dream-7B-Base (0.034) suggests code fine-tuning increases stochasticity sensitivity.</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">MAUVE 0.886 (none) vs 0.742 (high_entropy) at t=0.25, 256 steps. Demonstrates that code-specialized models retain the remasking confound despite domain adaptation.</p>
+      </div>
+      <div class="model-panel" id="dreamcoder-results">
+        <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">CARE Tier 2 results — 256 nominal steps, English-filtered OWT, t=0.25.</p>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="dreamcoder-results-table"></table></div>
+      </div>
+      <div class="model-panel" id="dreamcoder-config">
+        <ul style="font-size:.82rem;color:var(--color-text-muted);line-height:1.9;list-style:none;padding:0">
+          <li>📋 Setup: 64-token OpenWebText prefix → generate 128 tokens</li>
+          <li>🔤 English filter: ASCII ≥ 0.85, CJK ≤ 0.02</li>
+          <li>🌱 Seeds: 3</li>
+          <li>💻 Hardware: NVIDIA A100 80GB</li>
+          <li>📊 Metrics: MAUVE, PPL, HumanEval pass@1</li>
+        </ul>
+      </div>
+      <div class="model-panel" id="dreamcoder-reproduce">
+        <pre class="code-block">$ care-eval run \
+    --model dream-coder-7b \
+    --strategy none high_entropy \
+    --steps 64 128 256 \
+    --unmask_temp 0.0 0.1 0.25 0.5 \
+    --seeds 3 \
+    --tasks openwebtext_prefix humaneval</pre>
+        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">coming soon</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DiffuLLaMA-7B -->
+  <div class="model-card">
+    <div class="model-card-header">
+      <div>
+        <div class="model-card-title">DiffuLLaMA-7B</div>
+        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">7B params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">LLaMA-2-7B</span></div>
+      </div>
+    </div>
+    <div class="model-tabs">
+      <button class="model-tab active" onclick="switchModelTab('diffullama','overview')">Overview</button>
+      <button class="model-tab" onclick="switchModelTab('diffullama','results')">Results</button>
+      <button class="model-tab" onclick="switchModelTab('diffullama','config')">Config</button>
+      <button class="model-tab" onclick="switchModelTab('diffullama','reproduce')">Reproduce</button>
+    </div>
+    <div class="model-body">
+      <div class="model-panel active" id="diffullama-overview">
+        <div class="stat-highlight">Gap of <strong>0.255</strong> despite 7B scale — older LLaMA-2 base contributes to stronger stochasticity sensitivity than newer Qwen2.5-based models at equivalent scale.</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">MAUVE 0.872 (none) vs 0.617 (high_entropy) at t=0.25, 256 steps. HumanEval 21.0 pass@1. One of the earliest diffusion-adapted LLMs; provides historical baseline for architecture evolution in dLLMs.</p>
+      </div>
+      <div class="model-panel" id="diffullama-results">
+        <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">CARE Tier 2 results — 256 nominal steps, English-filtered OWT, t=0.25.</p>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="diffullama-results-table"></table></div>
+      </div>
+      <div class="model-panel" id="diffullama-config">
+        <ul style="font-size:.82rem;color:var(--color-text-muted);line-height:1.9;list-style:none;padding:0">
+          <li>📋 Setup: 64-token OpenWebText prefix → generate 128 tokens</li>
+          <li>🔤 English filter: ASCII ≥ 0.85, CJK ≤ 0.02</li>
+          <li>🌱 Seeds: 3</li>
+          <li>💻 Hardware: NVIDIA A100 80GB</li>
+          <li>📊 Metrics: MAUVE, PPL, HumanEval pass@1</li>
+        </ul>
+      </div>
+      <div class="model-panel" id="diffullama-reproduce">
+        <pre class="code-block">$ care-eval run \
+    --model diffullama-7b \
+    --strategy none high_entropy \
+    --steps 64 128 256 \
+    --unmask_temp 0.0 0.1 0.25 0.5 \
+    --seeds 3 \
+    --tasks openwebtext_prefix</pre>
+        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">coming soon</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tiny-A2D (Qwen-0.6B) -->
+  <div class="model-card">
+    <div class="model-card-header">
+      <div>
+        <div class="model-card-title">Tiny-A2D (Qwen-0.6B)</div>
+        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">0.6B params</span><span style="color:var(--color-text-faint)">Qwen2.5-0.6B <em>(unconfirmed)</em></span></div>
+      </div>
+    </div>
+    <div class="model-tabs">
+      <button class="model-tab active" onclick="switchModelTab('tiny06','overview')">Overview</button>
+      <button class="model-tab" onclick="switchModelTab('tiny06','results')">Results</button>
+      <button class="model-tab" onclick="switchModelTab('tiny06','config')">Config</button>
+      <button class="model-tab" onclick="switchModelTab('tiny06','reproduce')">Reproduce</button>
+    </div>
+    <div class="model-body">
+      <div class="model-panel active" id="tiny06-overview">
+        <div class="stat-highlight">Sub-1B scale: MAUVE 0.691 at t=0.25 — well below 7B models, confirming that scale is a meaningful factor for dLLM generation quality.</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">Gap 0.215 remains significant at small scale. Marginal improvement over 0.5B sibling (MAUVE 0.691 vs 0.662). Part of the Tiny-A2D scale ablation study — shows the stochasticity confound persists even at minimal parameter counts.</p>
+      </div>
+      <div class="model-panel" id="tiny06-results">
+        <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">CARE Tier 2 results — 256 nominal steps, English-filtered OWT, t=0.25.</p>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="tiny06-results-table"></table></div>
+      </div>
+      <div class="model-panel" id="tiny06-config">
+        <ul style="font-size:.82rem;color:var(--color-text-muted);line-height:1.9;list-style:none;padding:0">
+          <li>📋 Setup: 64-token OpenWebText prefix → generate 128 tokens</li>
+          <li>🔤 English filter: ASCII ≥ 0.85, CJK ≤ 0.02</li>
+          <li>🌱 Seeds: 3</li>
+          <li>💻 Hardware: NVIDIA A100 80GB (or A10/A6000 — small model)</li>
+          <li>📊 Metrics: MAUVE, PPL, HumanEval pass@1</li>
+        </ul>
+      </div>
+      <div class="model-panel" id="tiny06-reproduce">
+        <pre class="code-block">$ care-eval run \
+    --model tiny-a2d-qwen-06b \
+    --strategy none high_entropy \
+    --steps 64 128 256 \
+    --unmask_temp 0.0 0.1 0.25 0.5 \
+    --seeds 3 \
+    --tasks openwebtext_prefix</pre>
+        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">coming soon</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tiny-A2D (Qwen-0.5B) -->
+  <div class="model-card">
+    <div class="model-card-header">
+      <div>
+        <div class="model-card-title">Tiny-A2D (Qwen-0.5B)</div>
+        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">0.5B params</span><span style="color:var(--color-text-faint)">Qwen2.5-0.5B <em>(unconfirmed)</em></span></div>
+      </div>
+    </div>
+    <div class="model-tabs">
+      <button class="model-tab active" onclick="switchModelTab('tiny05','overview')">Overview</button>
+      <button class="model-tab" onclick="switchModelTab('tiny05','results')">Results</button>
+      <button class="model-tab" onclick="switchModelTab('tiny05','config')">Config</button>
+      <button class="model-tab" onclick="switchModelTab('tiny05','reproduce')">Reproduce</button>
+    </div>
+    <div class="model-body">
+      <div class="model-panel active" id="tiny05-overview">
+        <div class="stat-highlight">Smallest dLLM evaluated: MAUVE 0.662 — scale floor for dLLM generation quality. Gap 0.214 nearly identical to 0.6B sibling, confirming the confound is scale-invariant below 1B params.</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">HumanEval 4.5 pass@1. Lowest MAUVE among all dLLM models in the CARE leaderboard. The near-identical gap between the 0.5B and 0.6B Tiny-A2D variants (0.214 vs 0.215) suggests the remasking × stochasticity interaction magnitude saturates below 1B params.</p>
+      </div>
+      <div class="model-panel" id="tiny05-results">
+        <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">CARE Tier 2 results — 256 nominal steps, English-filtered OWT, t=0.25.</p>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="tiny05-results-table"></table></div>
+      </div>
+      <div class="model-panel" id="tiny05-config">
+        <ul style="font-size:.82rem;color:var(--color-text-muted);line-height:1.9;list-style:none;padding:0">
+          <li>📋 Setup: 64-token OpenWebText prefix → generate 128 tokens</li>
+          <li>🔤 English filter: ASCII ≥ 0.85, CJK ≤ 0.02</li>
+          <li>🌱 Seeds: 3</li>
+          <li>💻 Hardware: NVIDIA A100 80GB (or A10/A6000 — small model)</li>
+          <li>📊 Metrics: MAUVE, PPL, HumanEval pass@1</li>
+        </ul>
+      </div>
+      <div class="model-panel" id="tiny05-reproduce">
+        <pre class="code-block">$ care-eval run \
+    --model tiny-a2d-qwen-05b \
+    --strategy none high_entropy \
+    --steps 64 128 256 \
+    --unmask_temp 0.0 0.1 0.25 0.5 \
+    --seeds 3 \
+    --tasks openwebtext_prefix</pre>
+        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">coming soon</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BERT-Chat -->
+  <div class="model-card">
+    <div class="model-card-header">
+      <div>
+        <div class="model-card-title">BERT-Chat</div>
+        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">150M params</span><span style="color:var(--color-text-faint)">BERT-base <em>(unconfirmed)</em></span></div>
+      </div>
+    </div>
+    <div class="model-tabs">
+      <button class="model-tab active" onclick="switchModelTab('bertchat','overview')">Overview</button>
+      <button class="model-tab" onclick="switchModelTab('bertchat','results')">Results</button>
+      <button class="model-tab" onclick="switchModelTab('bertchat','config')">Config</button>
+      <button class="model-tab" onclick="switchModelTab('bertchat','reproduce')">Reproduce</button>
+    </div>
+    <div class="model-body">
+      <div class="model-panel active" id="bertchat-overview">
+        <div class="stat-highlight">Smallest model in CARE at 150M params: MAUVE 0.418 reflects encoder-based architecture limits. Remasking confound (gap=0.135) persists even at this scale and architecture type.</div>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">HumanEval 0.8 pass@1. Provides architecture diversity baseline: confirms the CARE confound appears in BERT-style masked LMs, not only decoder-based dLLMs. Encoder-based architectures are not well-suited for open-ended generation.</p>
+      </div>
+      <div class="model-panel" id="bertchat-results">
+        <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">CARE Tier 2 results — 256 nominal steps, English-filtered OWT, t=0.25.</p>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="bertchat-results-table"></table></div>
+      </div>
+      <div class="model-panel" id="bertchat-config">
+        <ul style="font-size:.82rem;color:var(--color-text-muted);line-height:1.9;list-style:none;padding:0">
+          <li>📋 Setup: 64-token OpenWebText prefix → generate 128 tokens</li>
+          <li>🔤 English filter: ASCII ≥ 0.85, CJK ≤ 0.02</li>
+          <li>🌱 Seeds: 3</li>
+          <li>💻 Hardware: NVIDIA A10 / A6000 (150M requires minimal VRAM)</li>
+          <li>📊 Metrics: MAUVE, PPL, HumanEval pass@1</li>
+          <li>⚠️ BERT-architecture: encoder-based — generation is autoregressive over mask positions</li>
+        </ul>
+      </div>
+      <div class="model-panel" id="bertchat-reproduce">
+        <pre class="code-block">$ care-eval run \
+    --model bert-chat \
+    --strategy none high_entropy \
+    --steps 64 128 256 \
+    --unmask_temp 0.0 0.1 0.25 0.5 \
+    --seeds 3 \
+    --tasks openwebtext_prefix</pre>
+        <p style="font-size:.75rem;color:var(--color-text-faint);margin-top:.5rem">care-eval CLI <span class="badge b-placeholder">coming soon</span></p>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ── TAB: METHODOLOGY ───────────────────────────────────────────────────── -->
@@ -758,7 +1224,7 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     <li class="step-item"><div class="step-num">3</div><div class="step-body"><div class="step-title">Run</div><pre class="code-block">$ care-eval run --config model_config.json</pre></div></li>
     <li class="step-item"><div class="step-num">4</div><div class="step-body"><div class="step-title">Evaluate</div><pre class="code-block">$ care-eval metrics --config model_config.json --outputs ./outputs/</pre></div></li>
     <li class="step-item"><div class="step-num">5</div><div class="step-body"><div class="step-title">Bundle</div><pre class="code-block">$ care-eval bundle  →  generates submission.json</pre></div></li>
-    <li class="step-item"><div class="step-num">6</div><div class="step-body"><div class="step-title">Submit — upload submission.json <span class="badge b-placeholder">[PLACEHOLDER — form URL]</span></div></div></li>
+    <li class="step-item"><div class="step-num">6</div><div class="step-body"><div class="step-title">Submit — upload submission.json <span class="badge b-placeholder">coming soon</span></div></div></li>
   </ol>
   <div class="trust-tiers">
     <div class="trust-card"><div class="trust-card-medal">🥉</div><div class="trust-card-title">Paper-reported</div><div class="trust-card-desc">Metrics transcribed from paper. Not independently verified.</div></div>
@@ -969,7 +1435,7 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
 
 <!-- ── FOOTER ─────────────────────────────────────────────────────────────── -->
 <footer style="background:var(--color-surface);border-top:1px solid var(--color-border);padding:1.5rem 1.25rem;text-align:center;font-size:.75rem;color:var(--color-text-faint)">
-  CARE Leaderboard · NeurIPS 2026 Companion · <a href="#" style="color:var(--color-text-faint)">Paper <span class="badge b-placeholder">[PLACEHOLDER]</span></a> · <a href="#" style="color:var(--color-text-faint)">GitHub <span class="badge b-placeholder">[PLACEHOLDER]</span></a> · <a href="#" style="color:var(--color-text-faint)">HF Space <span class="badge b-placeholder">[PLACEHOLDER]</span></a>
+  CARE Leaderboard · NeurIPS 2026 Companion · <a href="#" style="color:var(--color-text-faint)">Paper <span class="badge b-placeholder">coming soon</span></a> · <a href="#" style="color:var(--color-text-faint)">GitHub <span class="badge b-placeholder">coming soon</span></a> · <a href="#" style="color:var(--color-text-faint)">HF Space <span class="badge b-placeholder">coming soon</span></a>
 </footer>
 <script>
 /* ════════════════════════════════════════════════════════════════════════
@@ -2193,6 +2659,29 @@ function renderCareTable(){
 function tRow(cells){return`<tr>${cells.map((c,i)=>`<td style="padding:.3rem .5rem;border-bottom:1px solid var(--color-divider);color:${i===0?'var(--color-text)':'var(--color-text-muted)'}">${c}</td>`).join('')}</tr>`;}
 function tHead(cells){return`<thead><tr style="background:var(--color-surface-offset)">${cells.map(c=>`<th style="padding:.3rem .5rem;text-align:left;font-size:.68rem;color:var(--color-text-faint);font-weight:700;text-transform:uppercase;border-bottom:1px solid var(--color-border)">${c}</th>`).join('')}</tr></thead>`;}
 
+/* Build a simple 2-row summary table from CARE_LEADERBOARD for models without
+   dedicated data constants (none vs high_entropy, 256 steps, t=0.25). */
+function buildSimpleLeaderboardTable(model){
+  const MODEL_MAP={
+    llada_inst:'LLaDA-8B-Instruct',llada15:'LLaDA-1.5',
+    dream_inst:'Dream-7B-Instruct',tiny05:'Tiny-A2D (Qwen-0.5B)',
+    tiny06:'Tiny-A2D (Qwen-0.6B)',diffullama:'DiffuLLaMA-7B',
+    dreamcoder:'Dream-Coder-7B',smdream:'SM-Dream-7B',bertchat:'BERT-Chat'
+  };
+  const modelName=MODEL_MAP[model];if(!modelName)return;
+  const el=document.getElementById(`${model}-results-table`);if(!el)return;
+  const r=CARE_LEADERBOARD.data.find(x=>x.model===modelName);
+  if(!r){el.innerHTML='<tbody><tr><td style="padding:.5rem;color:var(--color-text-faint)">No data available</td></tr></tbody>';return;}
+  const f3=v=>v!=null?v.toFixed(3):'—';
+  const f1=v=>v!=null?v.toFixed(1):'—';
+  el.innerHTML=tHead(['Strategy','Steps','t','MAUVE','PPL','HE pass@1'])+
+    `<tbody>
+      ${tRow([strategyDot('none'),'256','0.25',f3(r.mauve_none),f1(r.ppl_none),f1(r.he)])}
+      ${tRow([strategyDot('high_entropy'),'256','0.25',`<span style="color:var(--color-error)">${f3(r.mauve_hent)}</span>`,f1(r.ppl_hent),'—'])}
+    </tbody>
+    <tfoot><tr><td colspan="6" style="padding:.25rem .5rem;font-size:.7rem;color:var(--color-text-faint)">MAUVE gap (none−high_entropy) = <strong>${f3(r.gap)}</strong>${r.note?` · ${r.note}`:''} · 256 nom. steps · OWT English-filtered · t=0.25 · HE pass@1 from none strategy</td></tr></tfoot>`;
+}
+
 function buildModelResultTable(model){
   if(model==='llada'){
     const el=document.getElementById('llada-results-table');if(!el)return;
@@ -2203,6 +2692,8 @@ function buildModelResultTable(model){
   }else if(model==='dream'){
     const el=document.getElementById('dream-results-table');if(!el)return;
     el.innerHTML=tHead(['Strategy','Steps','t','PPL','MAUVE'])+`<tbody>${DREAM_DATA.data.map(r=>tRow([strategyDot(r.strategy),r.steps,r.temp.toFixed(1),r.ppl.toFixed(1),r.mauve.toFixed(3)])).join('')}</tbody>`;
+  }else{
+    buildSimpleLeaderboardTable(model);
   }
 }
 
@@ -2362,7 +2853,7 @@ function buildJsonViewer(){
       <div class="json-section-header" onclick="toggleJsonSection(this)" tabindex="0" role="button" aria-expanded="false">
         <span>"${k}": {</span><i data-lucide="chevron-right" style="width:13px;height:13px;transition:transform .15s"></i>
       </div>
-      <div class="json-section-body">${v.replace(/\[PLACEHOLDER\]/g,'<span class="badge b-placeholder">[PLACEHOLDER]</span>')}</div>
+      <div class="json-section-body">${v.replace(/\[PLACEHOLDER\]/g,'<span class="badge b-placeholder">coming soon</span>')}</div>
     </div>`).join('');
   lucide.createIcons();
 }
