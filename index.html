@@ -723,7 +723,7 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     <div class="model-card-header">
       <div>
         <div class="model-card-title">LLaDA-1.5</div>
-        <div class="model-card-meta"><span class="badge b-verified">Dense</span><span class="badge b-verified">8B params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">LLaMA-3.1-8B <em>(foundation unconfirmed)</em></span></div>
+        <div class="model-card-meta"><span class="badge b-verified">Dense</span><span class="badge b-verified">8B params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">LLaMA-3-8B · builds on LLaDA-8B-Instruct</span></div>
       </div>
     </div>
     <div class="model-tabs">
@@ -735,7 +735,7 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     <div class="model-body">
       <div class="model-panel active" id="llada15-overview">
         <div class="stat-highlight">Best HumanEval in Tier 1 at <strong>38.0 pass@1</strong> — architecture improvements raise code performance while the stochasticity confound (gap=0.258) persists.</div>
-        <p style="font-size:.83rem;color:var(--color-text-muted)">Updated LLaDA architecture. Improved MAUVE under none (0.939) and a modestly smaller gap vs. LLaDA-8B-Base (0.258 vs. 0.296). Foundation model listed as LLaMA-3.1-8B — not confirmed in public documentation.</p>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">Updated LLaDA architecture built on LLaDA-8B-Instruct (foundation: LLaMA-3-8B). Improved MAUVE under none (0.939) and a modestly smaller gap vs. LLaDA-8B-Base (0.258 vs. 0.296).</p>
       </div>
       <div class="model-panel" id="llada15-results">
         <p style="font-size:.78rem;color:var(--color-text-muted);margin-bottom:.75rem">CARE Tier 1 results — 256 nominal steps, English-filtered OWT, t=0.25.</p>
@@ -768,7 +768,7 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     <div class="model-card-header">
       <div>
         <div class="model-card-title">LLaDA-MoE-7B-A1B</div>
-        <div class="model-card-meta"><span class="badge b-verified">MoE</span><span class="badge b-verified">~1B active params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">Custom MoE <em>(foundation unconfirmed)</em></span></div>
+        <div class="model-card-meta"><span class="badge b-verified">MoE</span><span class="badge b-verified">~1B active params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">Trained from scratch · ~20T tokens</span></div>
       </div>
     </div>
     <div class="model-tabs">
@@ -780,7 +780,7 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     <div class="model-body">
       <div class="model-panel active" id="moe-overview">
         <div class="stat-highlight">Cross-architecture validation: stochasticity replicates — <strong>+0.507 MAUVE</strong> at t=0.1 vs t=0.0 (none@256).</div>
-        <p style="font-size:.83rem;color:var(--color-text-muted)">Dense 8B vs MoE ~1B active — both models show the same stochasticity × remasking interaction pattern, confirming CARE findings are architecture-agnostic. Results at t=0.1 (optimal for MoE). Foundation model not confirmed in public documentation.</p>
+        <p style="font-size:.83rem;color:var(--color-text-muted)">Dense 8B vs MoE ~1B active — both models show the same stochasticity × remasking interaction pattern, confirming CARE findings are architecture-agnostic. Results at t=0.1 (optimal for MoE). Trained from scratch on ~20T tokens; no third-party LLM foundation.</p>
       </div>
       <div class="model-panel" id="moe-results">
         <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.78rem;font-family:var(--font-mono)" id="moe-results-table"></table></div>
@@ -911,7 +911,7 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     <div class="model-card-header">
       <div>
         <div class="model-card-title">SM-Dream-7B</div>
-        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">7B params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">Soft-Masked variant · Qwen2.5-7B <em>(unconfirmed)</em></span></div>
+        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">7B params</span><span class="badge b-verified">Open weights</span><span style="color:var(--color-text-faint)">Soft-Masked variant · Qwen2.5-7B via Dream-7B-Base</span></div>
       </div>
     </div>
     <div class="model-tabs">
@@ -1046,7 +1046,7 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     <div class="model-card-header">
       <div>
         <div class="model-card-title">Tiny-A2D (Qwen-0.6B)</div>
-        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">0.6B params</span><span style="color:var(--color-text-faint)">Qwen2.5-0.6B <em>(unconfirmed)</em></span></div>
+        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">0.6B params</span><span style="color:var(--color-text-faint)">Qwen3-0.6B</span></div>
       </div>
     </div>
     <div class="model-tabs">
@@ -1091,7 +1091,7 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
     <div class="model-card-header">
       <div>
         <div class="model-card-title">Tiny-A2D (Qwen-0.5B)</div>
-        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">0.5B params</span><span style="color:var(--color-text-faint)">Qwen2.5-0.5B <em>(unconfirmed)</em></span></div>
+        <div class="model-card-meta"><span class="badge b-paper">Tier 2</span><span class="badge b-verified">0.5B params</span><span style="color:var(--color-text-faint)">Qwen2-0.5B</span></div>
       </div>
     </div>
     <div class="model-tabs">
@@ -1649,16 +1649,16 @@ const CARE_LEADERBOARD={note:"256 nominal steps, English-filtered, OWT prefix=64
   /* Tier 1 */
   {tier:1,type:"dLLM",foundation:"LLaMA-3-8B",     fConfirmed:true,  model:"LLaDA-8B-Base",    scale:"8B",   ppl_none:23.4,mauve_none:0.948,ppl_hent:20.6,mauve_hent:0.652,gap:0.296,he:32.0,note:""},
   {tier:1,type:"dLLM",foundation:"LLaMA-3-8B",     fConfirmed:true,  model:"LLaDA-8B-Instruct",scale:"8B",   ppl_none:22.7,mauve_none:0.928,ppl_hent:20.1,mauve_hent:0.641,gap:0.287,he:36.5,note:""},
-  {tier:1,type:"dLLM",foundation:"LLaMA-3.1-8B",   fConfirmed:false, model:"LLaDA-1.5",        scale:"8B",   ppl_none:21.9,mauve_none:0.939,ppl_hent:19.4,mauve_hent:0.681,gap:0.258,he:38.0,note:""},
-  {tier:1,type:"dLLM",foundation:"Custom MoE",      fConfirmed:false, model:"LLaDA-MoE-A1B",   scale:"~1B",  ppl_none:null,mauve_none:0.954,ppl_hent:null,mauve_hent:0.793,gap:0.161,he:18.5,note:"* t=0.1"},
+  {tier:1,type:"dLLM",foundation:"LLaMA-3-8B",     fConfirmed:true,  model:"LLaDA-1.5",        scale:"8B",   ppl_none:21.9,mauve_none:0.939,ppl_hent:19.4,mauve_hent:0.681,gap:0.258,he:38.0,note:""},
+  {tier:1,type:"dLLM",foundation:"Scratch (20T)",   fConfirmed:true,  model:"LLaDA-MoE-A1B",   scale:"~1B",  ppl_none:null,mauve_none:0.954,ppl_hent:null,mauve_hent:0.793,gap:0.161,he:18.5,note:"* t=0.1"},
   {tier:1,type:"dLLM",foundation:"Qwen2.5-7B",      fConfirmed:true,  model:"Dream-7B-Base",    scale:"7B",   ppl_none:null,mauve_none:0.955,ppl_hent:null,mauve_hent:0.921,gap:0.034,he:27.5,note:"† entropy strategy"},
   {tier:1,type:"dLLM",foundation:"Qwen2.5-7B",      fConfirmed:true,  model:"Dream-7B-Instruct",scale:"7B",   ppl_none:23.8,mauve_none:0.927,ppl_hent:21.8,mauve_hent:0.861,gap:0.066,he:31.0,note:""},
   /* Tier 2 */
-  {tier:2,type:"dLLM",foundation:"Qwen2.5-0.5B",   fConfirmed:false, model:"Tiny-A2D (Qwen-0.5B)",scale:"0.5B",ppl_none:38.5,mauve_none:0.662,ppl_hent:34.2,mauve_hent:0.448,gap:0.214,he:4.5, note:""},
-  {tier:2,type:"dLLM",foundation:"Qwen2.5-0.6B",   fConfirmed:false, model:"Tiny-A2D (Qwen-0.6B)",scale:"0.6B",ppl_none:36.8,mauve_none:0.691,ppl_hent:32.7,mauve_hent:0.476,gap:0.215,he:5.8, note:""},
+  {tier:2,type:"dLLM",foundation:"Qwen2-0.5B",      fConfirmed:true,  model:"Tiny-A2D (Qwen-0.5B)",scale:"0.5B",ppl_none:38.5,mauve_none:0.662,ppl_hent:34.2,mauve_hent:0.448,gap:0.214,he:4.5, note:""},
+  {tier:2,type:"dLLM",foundation:"Qwen3-0.6B",      fConfirmed:true,  model:"Tiny-A2D (Qwen-0.6B)",scale:"0.6B",ppl_none:36.8,mauve_none:0.691,ppl_hent:32.7,mauve_hent:0.476,gap:0.215,he:5.8, note:""},
   {tier:2,type:"dLLM",foundation:"LLaMA-2-7B",      fConfirmed:true,  model:"DiffuLLaMA-7B",    scale:"7B",   ppl_none:26.4,mauve_none:0.872,ppl_hent:22.6,mauve_hent:0.617,gap:0.255,he:21.0,note:""},
   {tier:2,type:"dLLM",foundation:"Qwen2.5-Coder-7B",fConfirmed:true,  model:"Dream-Coder-7B",   scale:"7B",   ppl_none:27.1,mauve_none:0.886,ppl_hent:23.4,mauve_hent:0.742,gap:0.144,he:34.0,note:""},
-  {tier:2,type:"dLLM",foundation:"Qwen2.5-7B",      fConfirmed:false, model:"SM-Dream-7B",      scale:"7B",   ppl_none:24.7,mauve_none:0.913,ppl_hent:21.6,mauve_hent:0.823,gap:0.090,he:29.5,note:"SM=Soft-Masked"},
+  {tier:2,type:"dLLM",foundation:"Qwen2.5-7B",      fConfirmed:true,  model:"SM-Dream-7B",      scale:"7B",   ppl_none:24.7,mauve_none:0.913,ppl_hent:21.6,mauve_hent:0.823,gap:0.090,he:29.5,note:"SM=Soft-Masked"},
   {tier:2,type:"dLLM",foundation:"BERT-base",        fConfirmed:false, model:"BERT-Chat",        scale:"150M", ppl_none:45.5,mauve_none:0.418,ppl_hent:41.2,mauve_hent:0.283,gap:0.135,he:0.8, note:""},
   /* AR Reference */
   {tier:0,type:"AR",  foundation:"GPT-2-XL",         fConfirmed:true,  model:"GPT-2-XL (p=0.95)",scale:"1.5B",ppl_none:14.1,mauve_none:0.742,ppl_hent:null,mauve_hent:null,gap:null,he:null,note:"AR baseline"}
