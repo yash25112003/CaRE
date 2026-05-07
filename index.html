@@ -513,7 +513,7 @@ pre.code-block{background:var(--color-surface-offset);border:1px solid var(--col
   <div class="chart-card" style="margin-bottom:1.25rem">
     <div class="chart-title"><span class="tooltip-anchor" data-tooltip="MAUVE">MAUVE</span> Gap Heatmap — none minus high_entropy (positive = none wins)</div>
     <div class="heatmap-grid" id="heatmap-grid"></div>
-    <p class="chart-caption">Starred cell: 256 steps, t=0.25 — gap=0.296±0.042, t-stat=7.06, <strong>p=0.020</strong>. Color scale: white (gap≈0) → deep red (gap≥0.4).</p>
+    <p class="chart-caption">Starred cell: 256 steps, t=0.25 — gap=0.296±0.042, t-stat=7.06, <strong>p=0.020</strong>. Color scale: light teal (gap≈0) → red (gap≥0.4).</p>
   </div>
   <div class="grid-2">
     <div class="chart-card">
@@ -2106,12 +2106,16 @@ function buildHeatmap(){
       const d=MAUVE_GAP.data.find(x=>x.steps===s&&x.t===t);
       const gap=d?d.gap:0;
       const alpha=Math.min(gap/0.45,1);
-      const r=Math.round(192*alpha);const g=Math.round(57*(1-alpha));const b=Math.round(43*(1-alpha));
+      // Light teal rgb(218,235,236) → error red rgb(192,57,43) — consistent with palette
+      const r=Math.round(218-26*alpha);
+      const g=Math.round(235-178*alpha);
+      const b=Math.round(236-193*alpha);
       const bg=gap<0.05?'var(--color-surface-offset)':`rgb(${r},${g},${b})`;
+      const textColor=gap<0.05?'var(--color-text-muted)':alpha>0.42?'#fff':'var(--color-text)';
       const key=MAUVE_GAP.key_finding;
       const isStar=s===key.steps&&t===key.t;
       const seStr=d&&d.se!=null?`±${d.se}`:'';
-      el.innerHTML+=`<div class="heatmap-cell${isStar?' heatmap-star':''}" style="background:${bg}" title="Steps=${s}, t=${t}, gap=${gap}${seStr?', SE='+seStr:''}${isStar?', p=0.020':''}">
+      el.innerHTML+=`<div class="heatmap-cell${isStar?' heatmap-star':''}" style="background:${bg};color:${textColor}" title="Steps=${s}, t=${t}, gap=${gap}${seStr?', SE='+seStr:''}${isStar?', p=0.020':''}">
         ${gap.toFixed(3)}${isStar?'<div style="font-size:.6rem;margin-top:.15rem">p=0.020</div>':''}
       </div>`;
     }
@@ -2179,8 +2183,8 @@ function renderCompute(){
   new Chart(ctx,{type:'bar',
     data:{labels:strats.map(s=>s.name),
       datasets:[{label:'Actual NFE',data:strats.map(s=>s.actual_nfe),
-        backgroundColor:strats.map(s=>s.ratio>=3.4?'rgba(192,57,43,.75)':s.ratio>=2?'rgba(209,153,0,.75)':'rgba(1,105,111,.75)'),
-        borderColor:strats.map(s=>s.ratio>=3.4?'#c0392b':s.ratio>=2?'#d19900':'#01696f'),
+        backgroundColor:strats.map(s=>(STRATEGY_COLORS[s.name]||'#999')+'bf'),
+        borderColor:strats.map(s=>STRATEGY_COLORS[s.name]||'#999'),
         borderWidth:1,borderRadius:3,maxBarThickness:16}]},
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},
